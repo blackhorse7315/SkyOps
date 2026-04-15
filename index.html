@@ -171,6 +171,19 @@
         }
 
         .hidden-screen { display: none !important; }
+        
+        /* State pulse for Active GPS Tracking Button */
+        .gps-active {
+            background-color: rgba(6, 182, 212, 0.6) !important;
+            border-color: #06b6d4 !important;
+            box-shadow: 0 0 15px rgba(6, 182, 212, 0.8);
+            animation: pulse-gps 2s infinite;
+        }
+        @keyframes pulse-gps {
+            0% { opacity: 1; }
+            50% { opacity: 0.5; }
+            100% { opacity: 1; }
+        }
     </style>
 </head>
 <body class="min-h-screen flex flex-col font-sans text-sm md:text-base">
@@ -416,7 +429,7 @@
 
                 <!-- Layer Toggle Controls (Tombol Ganti Map & Recenter) -->
                 <div class="absolute top-28 right-4 glass-panel p-2 rounded-lg z-20 flex flex-col gap-2 pointer-events-auto">
-                    <button onclick="recenterMap()" class="p-2 bg-cyan-600/30 hover:bg-cyan-500/50 rounded text-cyan-300 transition border border-cyan-500/30 hover:border-cyan-400 mb-1" title="Recenter to GPS">
+                    <button id="btn-recenter" onclick="recenterMap()" class="p-2 bg-cyan-600/30 hover:bg-cyan-500/50 rounded text-cyan-300 transition border border-cyan-500/30 hover:border-cyan-400 mb-1" title="Recenter to Real-time GPS">
                         <i data-lucide="crosshair" class="w-5 h-5"></i>
                     </button>
                     <div class="w-full h-px bg-white/10 mb-1"></div>
@@ -588,7 +601,7 @@
 
     <!-- MODAL ADD/EDIT WAYPOINT -->
     <div id="modal-waypoint" class="hidden fixed inset-0 z-[60] bg-[#050b14]/80 backdrop-blur-sm flex items-center justify-center p-4 opacity-0 transition-opacity duration-300">
-        <div class="glass-panel border-cyan-500/30 w-full max-w-md rounded-2xl p-6 transform scale-95 transition-transform duration-300" id="modal-waypoint-content">
+        <div class="glass-panel border-cyan-500/30 w-full max-md rounded-2xl p-6 transform scale-95 transition-transform duration-300" id="modal-waypoint-content">
             <div class="flex justify-between items-center mb-6 border-b border-white/10 pb-3">
                 <h3 class="font-tech text-xl font-bold text-white flex items-center gap-2">
                     <i data-lucide="map-pin" class="w-5 h-5 text-cyan-400"></i>
@@ -968,6 +981,9 @@
     </div>
 
     <script>
+        // MASUKKAN URL GOOGLE APPS SCRIPT ANDA DI SINI
+        const GOOGLE_SHEET_URL = ""; 
+
         // Inisialisasi Icons
         if (typeof lucide !== 'undefined') {
             lucide.createIcons();
@@ -1042,6 +1058,16 @@
         // Simpan Data
         function saveDB(data) {
             localStorage.setItem('skyops_data', JSON.stringify(data));
+            
+            // BACKGROUND SYNC KE GOOGLE SHEETS
+            if (GOOGLE_SHEET_URL && GOOGLE_SHEET_URL.startsWith("http")) {
+                fetch(GOOGLE_SHEET_URL, {
+                    method: 'POST',
+                    mode: 'no-cors', // Penting untuk Apps Script
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(data)
+                }).catch(err => console.warn("Google Sheet Sync Failed:", err));
+            }
         }
 
         // --- MANAJEMEN UI (SCREENS & TOAST) --- //
@@ -1315,6 +1341,10 @@
         let routeLayerGroup = null; // NEW: Layer untuk garis rute di peta
         let activeRouteOnMapId = null; // NEW: Melacak rute mana yang sedang digambar
         let pendingRouteInsertion = null; // NEW: State untuk menyimpan indeks rute jika menambah waypoint baru via drag-and-drop
+        
+        // NEW GLOBAL STATE FOR GPS
+        let isGPSTracking = false;
+        let gpsWatchId = null;
 
         function updateCoordinatesDisplay(latlng) {
             const latEl = document.getElementById('lat-display');
@@ -1327,11 +1357,55 @@
             }
         }
 
+        // UPDATED RECENTER MAP TO REAL-TIME GPS
         function recenterMap() {
-            if (map && gpsMarker) {
-                map.flyTo(gpsMarker.getLatLng(), map.getZoom(), { animate: true, duration: 0.8 });
-                showToast('Centered to Active GPS', 'info');
+            const btn = document.getElementById('btn-recenter');
+            
+            // Periksa dukungan Geolocation
+            if (!navigator.geolocation) {
+                showToast('Geolocation tidak didukung oleh browser Anda.', 'error');
+                return;
             }
+
+            // Jika sedang tracking, matikan
+            if (isGPSTracking) {
+                navigator.geolocation.clearWatch(gpsWatchId);
+                isGPSTracking = false;
+                btn.classList.remove('gps-active');
+                showToast('Real-time Tracking Disabled', 'info');
+                return;
+            }
+
+            // Mulai tracking
+            showToast('Initializing Real-time GPS Tracking...', 'info');
+            btn.classList.add('gps-active');
+            isGPSTracking = true;
+
+            gpsWatchId = navigator.geolocation.watchPosition(
+                (position) => {
+                    const lat = position.coords.latitude;
+                    const lng = position.coords.longitude;
+                    const newLatLng = new L.LatLng(lat, lng);
+                    
+                    if (gpsMarker) {
+                        gpsMarker.setLatLng(newLatLng);
+                        updateCoordinatesDisplay(newLatLng);
+                        
+                        // Hanya ikuti otomatis di peta jika tab Map sedang aktif
+                        if (document.getElementById('tab-map').classList.contains('hidden') === false) {
+                            map.flyTo(newLatLng, map.getZoom(), { animate: true, duration: 0.8 });
+                        }
+                    }
+                },
+                (error) => {
+                    isGPSTracking = false;
+                    btn.classList.remove('gps-active');
+                    let msg = 'Gagal mengakses GPS';
+                    if (error.code === error.PERMISSION_DENIED) msg = 'Izin lokasi ditolak pengguna.';
+                    showToast(msg, 'error');
+                },
+                { enableHighAccuracy: true }
+            );
         }
 
         function initRealMap() {
@@ -1395,6 +1469,14 @@
             // Event Listener saat marker digeser (Real-time update)
             gpsMarker.on('drag', function(e) {
                 updateCoordinatesDisplay(e.target.getLatLng());
+                
+                // Matikan tracking otomatis jika user menggeser marker manual
+                if (isGPSTracking) {
+                    navigator.geolocation.clearWatch(gpsWatchId);
+                    isGPSTracking = false;
+                    document.getElementById('btn-recenter').classList.remove('gps-active');
+                    showToast('Manual override: Real-time GPS stopped', 'info');
+                }
             });
 
             // Set tampilan koordinat awal
