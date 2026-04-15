@@ -139,7 +139,6 @@
             </div>
         </div>
     </div>
-    <style>@keyframes loadBar { 0% { width: 0%; } 100% { width: 100%; } }</style>
 
     <!-- 2. LOGIN SCREEN -->
     <div id="screen-login" class="hidden-screen min-h-screen flex items-center justify-center p-4">
@@ -149,12 +148,12 @@
                     <i data-lucide="compass" class="w-8 h-8 text-cyan-400"></i>
                 </div>
                 <h2 class="font-tech text-3xl font-bold text-white tracking-wide uppercase">System Access</h2>
-                <p class="text-slate-400 text-sm mt-2">Connecting to Flight Cloud Database...</p>
+                <p class="text-slate-400 text-sm mt-2">Connecting to Cloud Server...</p>
             </div>
 
             <form id="login-form" class="space-y-5">
-                <input type="text" id="login-user" required class="tech-input w-full p-3 rounded-lg text-sm" placeholder="Operator ID">
-                <input type="password" id="login-pass" required class="tech-input w-full p-3 rounded-lg text-sm" placeholder="Passcode">
+                <input type="text" id="login-user" required class="tech-input w-full p-3 rounded-lg text-sm" placeholder="Operator ID (admin)">
+                <input type="password" id="login-pass" required class="tech-input w-full p-3 rounded-lg text-sm" placeholder="Passcode (ramdan28)">
                 <button type="submit" id="btn-login-submit" class="btn-tech w-full text-white font-bold py-3 rounded-lg flex items-center justify-center gap-2 uppercase text-sm">
                     <span>Initialize System</span>
                     <i data-lucide="arrow-right" class="w-4 h-4"></i>
@@ -175,31 +174,33 @@
         <main class="flex-1 max-w-7xl w-full mx-auto p-4 grid grid-cols-1 lg:grid-cols-3 gap-6 overflow-y-auto">
             <div class="space-y-6">
                 <div class="glass-panel rounded-xl p-5">
-                    <h3 class="text-white mb-4 border-b border-white/10 pb-2">Admin Kredensial</h3>
+                    <h3 class="text-white mb-4 border-b border-white/10 pb-2 font-bold uppercase text-xs tracking-widest">Admin Credentials</h3>
                     <form id="admin-update-form" class="space-y-3">
-                        <input type="text" id="edit-admin-user" class="tech-input w-full p-2 rounded text-sm">
-                        <input type="password" id="edit-admin-pass" class="tech-input w-full p-2 rounded text-sm">
-                        <button type="submit" class="w-full bg-slate-700 text-white py-2 rounded text-xs">Update Cloud Admin</button>
+                        <input type="text" id="edit-admin-user" class="tech-input w-full p-2 rounded text-sm" placeholder="Admin Username">
+                        <input type="password" id="edit-admin-pass" class="tech-input w-full p-2 rounded text-sm" placeholder="Admin Password">
+                        <button type="submit" class="w-full bg-slate-700 text-white py-2 rounded text-xs font-bold uppercase tracking-wide">Sync New Admin Credentials</button>
                     </form>
                 </div>
                 <div class="glass-panel rounded-xl p-5">
-                    <h3 class="text-white mb-4 border-b border-white/10 pb-2">Tambah User</h3>
+                    <h3 class="text-white mb-4 border-b border-white/10 pb-2 font-bold uppercase text-xs tracking-widest">Create Operator Access</h3>
                     <form id="add-user-form" class="space-y-3">
-                        <input type="text" id="new-user-name" required class="tech-input w-full p-2 rounded text-sm" placeholder="Username">
-                        <input type="text" id="new-user-pass" required class="tech-input w-full p-2 rounded text-sm" placeholder="Password">
+                        <input type="text" id="new-user-name" required class="tech-input w-full p-2 rounded text-sm" placeholder="Operator Username">
+                        <input type="text" id="new-user-pass" required class="tech-input w-full p-2 rounded text-sm" placeholder="Passcode">
                         <input type="date" id="new-user-expiry" required class="tech-input w-full p-2 rounded text-sm">
                         <button type="submit" class="btn-tech w-full text-white py-2 rounded text-xs uppercase font-bold">Generate Access</button>
                     </form>
                 </div>
             </div>
-            <div class="lg:col-span-2 glass-panel rounded-xl p-5 flex flex-col">
+            <div class="lg:col-span-2 glass-panel rounded-xl p-5 flex flex-col h-[calc(100vh-10rem)]">
                 <div class="flex justify-between mb-4 border-b border-white/10 pb-2">
-                    <h3 class="text-white">Operator Database</h3>
-                    <span class="text-cyan-400 text-xs" id="user-count">0 Users</span>
+                    <h3 class="text-white font-bold uppercase text-xs tracking-widest">Registered Operators</h3>
+                    <span class="text-cyan-400 text-[10px] font-mono" id="user-count">0 USERS</span>
                 </div>
-                <div class="overflow-x-auto">
-                    <table class="w-full text-left text-sm">
-                        <thead class="text-slate-500 uppercase text-[10px]"><tr><th>Username</th><th>Password</th><th>Expiry</th><th class="text-right">Action</th></tr></thead>
+                <div class="overflow-x-auto flex-1">
+                    <table class="w-full text-left text-sm whitespace-nowrap">
+                        <thead class="text-slate-500 uppercase text-[10px] border-b border-white/5">
+                            <tr><th class="p-2">Username</th><th class="p-2">Password</th><th class="p-2">Expiry</th><th class="p-2">Status</th><th class="p-2 text-right">Action</th></tr>
+                        </thead>
                         <tbody id="user-table-body" class="divide-y divide-white/5"></tbody>
                     </table>
                 </div>
@@ -212,18 +213,18 @@
         <header class="glass-panel border-b border-white/10">
             <div class="px-4 py-4 flex justify-between items-center">
                 <div class="flex items-center gap-4">
-                    <div class="p-2 bg-cyan-500/20 rounded-lg"><i data-lucide="plane" class="text-cyan-400"></i></div>
+                    <div class="p-2 bg-cyan-500/20 rounded-lg shadow-[0_0_10px_rgba(6,182,212,0.3)]"><i data-lucide="plane" class="text-cyan-400"></i></div>
                     <div>
-                        <h1 class="font-tech text-lg text-white uppercase tracking-wider">SkyOps Pro V.00</h1>
-                        <div class="text-[10px] text-slate-500 font-mono">OPR: <span id="display-username" class="text-cyan-400"></span> | VAL: <span id="display-expiry" class="text-emerald-400"></span></div>
+                        <h1 class="font-tech text-lg text-white uppercase tracking-wider font-bold">Welcome to SkyOps Pro V.00</h1>
+                        <div class="text-[10px] text-slate-500 font-mono">OPR: <span id="display-username" class="text-cyan-400"></span> | LICENCE VAL UNTIL: <span id="display-expiry" class="text-emerald-400"></span></div>
                     </div>
                 </div>
-                <button onclick="logout()" class="p-2 bg-red-500/10 text-red-400 rounded border border-red-500/20"><i data-lucide="power" class="w-4 h-4"></i></button>
+                <button onclick="logout()" class="p-2 bg-red-500/10 text-red-400 rounded border border-red-500/20 hover:bg-red-500/20 transition-all"><i data-lucide="power" class="w-4 h-4"></i></button>
             </div>
-            <div class="px-4 flex overflow-x-auto gap-1 py-1 border-t border-white/5">
+            <div class="px-4 flex overflow-x-auto gap-1 py-1 border-t border-white/5 scrollbar-hide">
                 <button onclick="switchTab('tab-map')" class="tab-btn active px-4 py-2 text-xs text-slate-400 rounded-t-lg border-b-2 border-transparent flex items-center gap-2 whitespace-nowrap"><i data-lucide="map" class="w-3 h-3"></i> Map</button>
                 <button onclick="switchTab('tab-route')" class="tab-btn px-4 py-2 text-xs text-slate-400 rounded-t-lg border-b-2 border-transparent flex items-center gap-2 whitespace-nowrap"><i data-lucide="navigation" class="w-3 h-3"></i> Route</button>
-                <button onclick="switchTab('tab-waypoint')" class="tab-btn px-4 py-2 text-xs text-slate-400 rounded-t-lg border-b-2 border-transparent flex items-center gap-2 whitespace-nowrap"><i data-lucide="database" class="w-3 h-3"></i> Waypoint</button>
+                <button onclick="switchTab('tab-waypoint')" class="tab-btn px-4 py-2 text-xs text-slate-400 rounded-t-lg border-b-2 border-transparent flex items-center gap-2 whitespace-nowrap"><i data-lucide="database" class="w-3 h-3"></i> Waypoint Database</button>
                 <button onclick="switchTab('tab-aircraft')" class="tab-btn px-4 py-2 text-xs text-slate-400 rounded-t-lg border-b-2 border-transparent flex items-center gap-2 whitespace-nowrap"><i data-lucide="plane-takeoff" class="w-3 h-3"></i> Aircraft</button>
                 <button onclick="switchTab('tab-setting')" class="tab-btn px-4 py-2 text-xs text-slate-400 rounded-t-lg border-b-2 border-transparent flex items-center gap-2 whitespace-nowrap"><i data-lucide="settings" class="w-3 h-3"></i> Setting</button>
             </div>
@@ -234,122 +235,164 @@
             <div id="tab-map" class="tab-content h-full w-full absolute inset-0">
                 <div id="real-map" class="absolute inset-0 z-0"></div>
                 <div class="absolute top-4 right-4 z-20 flex flex-col gap-2">
-                    <button onclick="recenterMap()" class="p-2 glass-panel text-cyan-400 rounded-lg"><i data-lucide="crosshair" class="w-5 h-5"></i></button>
-                    <button onclick="changeMapStyle('satellite')" class="p-2 glass-panel text-white rounded-lg bg-cyan-600/20 border-cyan-400"><i data-lucide="globe" class="w-5 h-5"></i></button>
-                    <button onclick="changeMapStyle('street')" class="p-2 glass-panel text-white rounded-lg"><i data-lucide="map" class="w-5 h-5"></i></button>
+                    <button onclick="recenterMap()" class="p-2 glass-panel text-cyan-400 rounded-lg hover:bg-cyan-500/10" title="Recenter GPS"><i data-lucide="crosshair" class="w-5 h-5"></i></button>
+                    <button onclick="changeMapStyle('satellite')" class="p-2 glass-panel text-white rounded-lg hover:bg-white/5 border-white/10" title="Satellite View"><i data-lucide="globe" class="w-5 h-5"></i></button>
+                    <button onclick="changeMapStyle('street')" class="p-2 glass-panel text-white rounded-lg hover:bg-white/5 border-white/10" title="Street View"><i data-lucide="map" class="w-5 h-5"></i></button>
+                    <button onclick="changeMapStyle('terrain')" class="p-2 glass-panel text-white rounded-lg hover:bg-white/5 border-white/10" title="Terrain View"><i data-lucide="mountain" class="w-5 h-5"></i></button>
                 </div>
-                <div class="absolute bottom-4 left-4 right-4 glass-panel p-2 rounded-lg flex justify-between items-center text-[10px] font-mono z-20">
-                    <div id="lat-display">LAT: ---</div><div id="lon-display">LON: ---</div><div>GS: 450 KT</div>
+                <div class="absolute bottom-4 left-4 right-4 glass-panel p-2 rounded-lg flex justify-between items-center text-[10px] font-mono z-20 border-cyan-500/20">
+                    <div id="lat-display">LAT: ---</div><div id="lon-display">LON: ---</div><div>GROUND SPEED: <span class="text-cyan-400">450 KT</span></div>
                 </div>
             </div>
             <!-- ROUTE -->
             <div id="tab-route" class="tab-content hidden h-full p-4 overflow-y-auto">
-                <div class="flex justify-between items-center mb-4"><h2 class="text-white font-tech uppercase">Active Route</h2><button onclick="openRouteModal()" class="btn-tech px-3 py-1 text-white text-xs rounded">+ New Route</button></div>
+                <div class="flex justify-between items-center mb-6 border-b border-white/5 pb-2"><h2 class="text-white font-tech uppercase tracking-widest font-bold">Active Flight Plans</h2><button onclick="openRouteModal()" class="btn-tech px-4 py-1.5 text-white text-xs rounded-lg font-bold shadow-lg shadow-cyan-500/20">+ New Route</button></div>
                 <div id="route-list" class="space-y-3"></div>
             </div>
             <!-- WAYPOINT -->
             <div id="tab-waypoint" class="tab-content hidden h-full p-4 overflow-y-auto">
-                <div class="flex flex-col gap-3 mb-4">
-                    <div class="flex justify-between items-center"><h2 class="text-white font-tech uppercase">NavData Base</h2><button onclick="openWaypointModal()" class="btn-tech px-3 py-1 text-white text-xs rounded">+ Add</button></div>
+                <div class="flex flex-col gap-4 mb-6 border-b border-white/5 pb-4">
+                    <div class="flex justify-between items-center"><h2 class="text-white font-tech uppercase tracking-widest font-bold">NavData Base</h2><button onclick="openWaypointModal()" class="btn-tech px-4 py-1.5 text-white text-xs rounded-lg font-bold">+ New Waypoint</button></div>
                     <div class="flex gap-2">
-                        <input type="text" id="search-wpt-input" oninput="renderWaypoints()" class="tech-input flex-1 p-2 rounded text-xs" placeholder="Search WPT...">
-                        <button onclick="openBulkImportModal()" class="px-2 py-1 bg-slate-800 text-white text-[10px] rounded border border-white/10">Bulk</button>
+                        <div class="relative flex-1">
+                            <i data-lucide="search" class="absolute left-2 top-1/2 -translate-y-1/2 w-3 h-3 text-slate-500"></i>
+                            <input type="text" id="search-wpt-input" oninput="renderWaypoints()" class="tech-input w-full pl-7 p-2 rounded-lg text-xs" placeholder="Filter Waypoint name...">
+                        </div>
+                        <button onclick="openBulkImportModal()" class="px-3 py-2 bg-slate-800 text-white text-[10px] rounded-lg border border-white/10 hover:bg-slate-700 transition-all font-bold">BULK PARSER</button>
                     </div>
                 </div>
                 <div id="waypoint-list" class="space-y-2"></div>
             </div>
             <!-- AIRCRAFT -->
             <div id="tab-aircraft" class="tab-content hidden h-full p-4 overflow-y-auto">
-                <div class="flex justify-between items-center mb-4"><h2 class="text-white font-tech uppercase">Aircraft Profiles</h2><button onclick="openAircraftModal()" class="btn-tech px-3 py-1 text-white text-xs rounded">+ New Profile</button></div>
+                <div class="flex justify-between items-center mb-6 border-b border-white/5 pb-2"><h2 class="text-white font-tech uppercase tracking-widest font-bold">Aircraft Fleet</h2><button onclick="openAircraftModal()" class="btn-tech px-4 py-1.5 text-white text-xs rounded-lg font-bold">+ Add Profile</button></div>
                 <div id="aircraft-list" class="space-y-2"></div>
             </div>
             <!-- SETTINGS -->
             <div id="tab-setting" class="tab-content hidden h-full p-4 overflow-y-auto">
-                <h2 class="text-white font-tech uppercase mb-4">Configuration</h2>
-                <div class="glass-panel p-4 rounded-xl space-y-4">
-                    <div class="flex justify-between text-xs text-slate-400"><span>Cloud Database Status</span><span class="text-emerald-400 flex items-center gap-1"><i data-lucide="cloud" class="w-3 h-3"></i> Connected</span></div>
-                    <button onclick="loadFromCloud()" class="w-full py-2 bg-slate-800 text-white rounded-lg text-xs font-bold border border-white/10 flex items-center justify-center gap-2"><i data-lucide="refresh-cw" class="w-3 h-3"></i> Force Cloud Pull</button>
-                    <div class="text-[9px] text-slate-600 text-center uppercase tracking-widest">Version SkyOps Pro 2024.0.1</div>
-                </div>
+                <h2 class="text-white font-tech uppercase mb-6 tracking-widest font-bold">System Configuration</h2>
+                <div class="max-w-md space-y-4">
+                    <div class="glass-panel p-4 rounded-xl border border-cyan-500/30">
+                        <div class="flex items-center gap-2 mb-4"><i data-lucide="cloud" class="w-4 h-4 text-cyan-400"></i><span class="font-bold text-white uppercase text-[10px] tracking-widest">Cloud Database Sync</span></div>
+                        <div class="space-y-4">
+                            <div class="flex justify-between text-[10px] text-slate-400"><span>Status</span><span class="text-emerald-400 flex items-center gap-1 font-mono uppercase tracking-tighter">● Online (Connected)</span></div>
+                            <button onclick="loadFromCloud()" class="w-full py-3 bg-slate-800 hover:bg-slate-700 text-white rounded-lg text-xs font-bold border border-white/10 flex items-center justify-center gap-2 shadow-inner"><i data-lucide="refresh-cw" class="w-3 h-3"></i> Sync Cloud to Local</button>
+                            <p class="text-[9px] text-slate-500 italic text-center">Cloud data is automatically updated on every save.</p>
+                        </div>
+                    </div>
+                    <div class="glass-panel p-3 rounded-lg flex justify-between items-center text-[10px]">
+                        <span class="text-slate-400 uppercase tracking-widest">Software Version</span>
+                        <span class="text-cyan-400 font-mono font-bold">2026.04.15-PRO</span>
+                    </div>
+                 </div>
             </div>
         </main>
     </div>
 
-    <!-- MODAL WAYPOINT -->
-    <div id="modal-waypoint" class="hidden fixed inset-0 z-[60] bg-black/80 flex items-center justify-center p-4"><div class="glass-panel w-full max-w-md rounded-2xl p-6">
-        <h3 class="text-white font-bold mb-4 uppercase tracking-wider border-b border-white/5 pb-2" id="wpt-modal-title">Waypoint</h3>
-        <form id="form-waypoint" class="space-y-4">
-            <input type="hidden" id="wpt-id">
-            <input type="text" id="wpt-name" required class="tech-input w-full p-2 rounded text-sm uppercase font-bold" placeholder="Waypoint Name">
-            <input type="number" id="wpt-elev" required class="tech-input w-full p-2 rounded text-sm" placeholder="Elevation (FT)">
-            <div class="grid grid-cols-3 gap-2">
-                <label class="flex flex-col items-center p-2 rounded border border-white/10 text-[10px] cursor-pointer"><input type="radio" name="wpt_type" value="vfr" checked> VFR</label>
-                <label class="flex flex-col items-center p-2 rounded border border-white/10 text-[10px] cursor-pointer"><input type="radio" name="wpt_type" value="airport"> AIRPORT</label>
-                <label class="flex flex-col items-center p-2 rounded border border-white/10 text-[10px] cursor-pointer"><input type="radio" name="wpt_type" value="heliport"> HELI</label>
-            </div>
-            <div id="coord-dms-group" class="grid grid-cols-4 gap-1">
-                <select id="wpt-lat-dir" class="tech-input text-xs"><option>N</option><option>S</option></select><input type="number" id="wpt-lat-deg" class="tech-input text-xs" placeholder="D"><input type="number" id="wpt-lat-min" class="tech-input text-xs" placeholder="M"><input type="number" id="wpt-lat-sec" class="tech-input text-xs" placeholder="S">
-                <select id="wpt-lng-dir" class="tech-input text-xs"><option>E</option><option>W</option></select><input type="number" id="wpt-lng-deg" class="tech-input text-xs" placeholder="D"><input type="number" id="wpt-lng-min" class="tech-input text-xs" placeholder="M"><input type="number" id="wpt-lng-sec" class="tech-input text-xs" placeholder="S">
-            </div>
-            <div class="flex justify-between gap-2 pt-2 border-t border-white/10"><button type="button" id="btn-delete-wpt" onclick="deleteWaypointDB()" class="text-red-400 text-xs">Delete</button><div><button type="button" onclick="closeWaypointModal()" class="text-slate-500 text-xs mr-3">Cancel</button><button type="submit" class="btn-tech px-4 py-2 text-white rounded text-xs">Save to Cloud</button></div></div>
-        </form>
-    </div></div>
+    <!-- MODALS (WPT, ROUTE, AC, BULK) -->
+    <div id="modal-waypoint" class="hidden fixed inset-0 z-[60] bg-black/80 backdrop-blur-sm flex items-center justify-center p-4">
+        <div class="glass-panel w-full max-w-md rounded-2xl p-6 shadow-[0_20px_50px_rgba(0,0,0,1)] border-cyan-500/30">
+            <h3 class="text-white font-bold mb-5 uppercase tracking-widest text-sm border-b border-white/5 pb-2">Waypoint Profile</h3>
+            <form id="form-waypoint" class="space-y-4">
+                <input type="hidden" id="wpt-id">
+                <input type="text" id="wpt-name" required class="tech-input w-full p-2.5 rounded-lg text-sm uppercase font-bold text-cyan-400" placeholder="e.g. KNO">
+                <input type="number" id="wpt-elev" required class="tech-input w-full p-2.5 rounded-lg text-sm" placeholder="Elevation (FT)">
+                <div class="grid grid-cols-3 gap-2">
+                    <label class="flex flex-col items-center p-2 rounded border border-white/5 text-[9px] cursor-pointer hover:bg-white/5 transition-colors"><input type="radio" name="wpt_type" value="vfr" class="mb-1" checked> VFR</label>
+                    <label class="flex flex-col items-center p-2 rounded border border-white/5 text-[9px] cursor-pointer hover:bg-white/5 transition-colors"><input type="radio" name="wpt_type" value="airport" class="mb-1"> AIRPORT</label>
+                    <label class="flex flex-col items-center p-2 rounded border border-white/5 text-[9px] cursor-pointer hover:bg-white/5 transition-colors"><input type="radio" name="wpt_type" value="heliport" class="mb-1"> HELI</label>
+                </div>
+                <div id="coord-dms-group" class="grid grid-cols-4 gap-1 p-2 bg-black/30 rounded-lg">
+                    <select id="wpt-lat-dir" class="tech-input text-xs rounded-md"><option>N</option><option>S</option></select><input type="number" id="wpt-lat-deg" class="tech-input text-xs rounded-md" placeholder="D"><input type="number" id="wpt-lat-min" class="tech-input text-xs rounded-md" placeholder="M"><input type="number" id="wpt-lat-sec" class="tech-input text-xs rounded-md" placeholder="S">
+                    <select id="wpt-lng-dir" class="tech-input text-xs rounded-md"><option>E</option><option>W</option></select><input type="number" id="wpt-lng-deg" class="tech-input text-xs rounded-md" placeholder="D"><input type="number" id="wpt-lng-min" class="tech-input text-xs rounded-md" placeholder="M"><input type="number" id="wpt-lng-sec" class="tech-input text-xs rounded-md" placeholder="S">
+                </div>
+                <div class="flex justify-between items-center gap-2 pt-4 border-t border-white/5">
+                    <button type="button" id="btn-delete-wpt" onclick="deleteWaypointDB()" class="text-red-500 text-[10px] uppercase font-bold hover:underline">Delete Data</button>
+                    <div class="flex gap-3">
+                        <button type="button" onclick="closeWaypointModal()" class="text-slate-500 text-[10px] uppercase font-bold">Discard</button>
+                        <button type="submit" class="btn-tech px-6 py-2 text-white rounded-lg text-xs font-bold shadow-lg">Save to Cloud</button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
 
     <!-- MODAL ROUTE -->
-    <div id="modal-route" class="hidden fixed inset-0 z-[60] bg-black/80 flex items-center justify-center p-4 overflow-y-auto"><div class="glass-panel w-full max-w-4xl rounded-2xl p-6">
-        <h3 class="text-white font-bold mb-4 uppercase border-b border-white/5 pb-2">Flight Plan</h3>
-        <div class="space-y-4">
-            <input type="hidden" id="ofp-id">
-            <div class="grid grid-cols-2 md:grid-cols-4 gap-2">
-                <input type="text" id="ofp-route-name" class="tech-input p-2 text-sm uppercase font-bold" placeholder="ROUTE ID">
-                <select id="ofp-aircraft" onchange="handleAircraftSelectForRoute()" class="tech-input p-2 text-sm"></select>
-                <input type="time" id="ofp-dep-time" class="tech-input p-2 text-sm">
-                <input type="number" id="ofp-fob" class="tech-input p-2 text-sm" placeholder="Fuel Onboard">
+    <div id="modal-route" class="hidden fixed inset-0 z-[60] bg-black/90 backdrop-blur-md flex items-center justify-center p-4 overflow-y-auto">
+        <div class="glass-panel w-full max-w-4xl rounded-2xl p-6 shadow-2xl border-cyan-500/20">
+            <div class="flex justify-between items-center mb-6 border-b border-white/5 pb-2"><h3 class="text-white font-bold uppercase tracking-widest text-sm">Operational Flight Plan</h3><button onclick="closeRouteModal()" class="text-slate-500 hover:text-white">&times;</button></div>
+            <div class="space-y-4">
+                <input type="hidden" id="ofp-id">
+                <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
+                    <div><label class="text-[9px] text-slate-500 uppercase block mb-1">Route ID</label><input type="text" id="ofp-route-name" class="tech-input w-full p-2 rounded-lg text-xs uppercase font-bold text-cyan-400" placeholder="KNO-CGK"></div>
+                    <div><label class="text-[9px] text-slate-500 uppercase block mb-1">Aircraft Profile</label><select id="ofp-aircraft" onchange="handleAircraftSelectForRoute()" class="tech-input w-full p-2 rounded-lg text-xs"></select></div>
+                    <div><label class="text-[9px] text-slate-500 uppercase block mb-1">Departure (UTC)</label><input type="time" id="ofp-dep-time" class="tech-input w-full p-2 rounded-lg text-xs"></div>
+                    <div><label class="text-[9px] text-slate-500 uppercase block mb-1">FOB (Current)</label><input type="number" id="ofp-fob" class="tech-input w-full p-2 rounded-lg text-xs font-bold text-emerald-400" placeholder="Fuel Units"></div>
+                </div>
+                <div class="border border-white/10 rounded-xl overflow-hidden bg-black/20">
+                    <table class="w-full text-[10px] text-left">
+                        <thead class="bg-slate-800/50 text-slate-400 uppercase"><tr><th class="p-3">#</th><th class="p-3">Waypoint</th><th class="p-3">TRK (T)</th><th class="p-3">DIST (NM)</th><th class="p-3">ETE</th><th class="p-3 text-right">Action</th></tr></thead>
+                        <tbody id="ofp-table-body" class="font-mono divide-y divide-white/5"></tbody>
+                    </table>
+                    <div class="p-3 relative bg-cyan-500/5">
+                        <button onclick="toggleWptSearch()" class="text-cyan-400 text-[10px] uppercase font-bold flex items-center gap-1"><i data-lucide="plus" class="w-3 h-3"></i> Insert Route Waypoint</button>
+                        <div id="wpt-search-box" class="hidden absolute top-full left-0 w-72 bg-slate-950 border border-cyan-400/50 z-[100] p-3 rounded-xl shadow-[0_10px_40px_rgba(0,0,0,1)]">
+                            <input type="text" id="ofp-wpt-search-input" oninput="filterRouteWaypointSearch()" class="tech-input w-full p-2 rounded-lg text-xs mb-2" placeholder="Search nav database..." autocomplete="off">
+                            <div id="ofp-wpt-search-results" class="max-h-52 overflow-y-auto space-y-1"></div>
+                        </div>
+                    </div>
+                </div>
+                <div class="grid grid-cols-2 md:grid-cols-4 gap-3 text-center text-[11px] font-mono">
+                    <div class="bg-black/40 p-3 rounded-xl border border-white/5"><div class="text-slate-500 mb-1">DISTANCE</div><div class="text-white font-bold"><span id="ofp-sum-dist">0</span> NM</div></div>
+                    <div class="bg-black/40 p-3 rounded-xl border border-white/5"><div class="text-slate-500 mb-1">TOTAL TIME</div><div class="text-white font-bold" id="ofp-sum-eet">00:00</div></div>
+                    <div class="bg-black/40 p-3 rounded-xl border border-white/5"><div class="text-slate-500 mb-1">FUEL REQ</div><div class="text-amber-400 font-bold"><span id="ofp-sum-req">0</span> UNITS</div></div>
+                    <div class="bg-black/40 p-3 rounded-xl border border-white/5"><div class="text-slate-500 mb-1">RESIDUAL</div><div class="text-emerald-400 font-bold"><span id="ofp-sum-rem">0</span> UNITS</div></div>
+                </div>
+                <div class="flex justify-between items-center pt-4 border-t border-white/10">
+                    <div class="flex gap-4">
+                        <button type="button" id="btn-delete-route" onclick="deleteRouteDB()" class="text-red-500 text-[10px] uppercase font-bold hover:underline">Delete</button>
+                        <button type="button" onclick="invertRoute()" class="text-slate-400 text-[10px] uppercase font-bold flex items-center gap-1"><i data-lucide="arrow-down-up" class="w-3 h-3"></i> Invert Route</button>
+                    </div>
+                    <button onclick="saveRouteDB()" class="btn-tech px-8 py-2.5 text-white rounded-xl text-xs font-bold shadow-lg shadow-cyan-600/20 uppercase">Publish to Cloud</button>
+                </div>
             </div>
-            <div class="border border-white/10 rounded overflow-hidden">
-                <table class="w-full text-xs text-left">
-                    <thead class="bg-slate-800"><tr><th class="p-2">#</th><th class="p-2">WPT</th><th class="p-2">BRG</th><th class="p-2">DIST</th><th class="p-2">EET</th><th class="p-2">DEL</th></tr></thead>
-                    <tbody id="ofp-table-body" class="font-mono divide-y divide-white/5"></tbody>
-                </table>
-                <div class="p-2 relative"><button onclick="toggleWptSearch()" class="text-cyan-400 text-[10px] uppercase font-bold">+ Add Waypoint</button><div id="wpt-search-box" class="hidden absolute top-full left-0 w-64 bg-slate-900 border border-cyan-400 z-[100] p-2 rounded shadow-2xl"><input type="text" id="ofp-wpt-search-input" oninput="filterRouteWaypointSearch()" class="tech-input w-full p-1 text-xs mb-1" placeholder="Search..."><div id="ofp-wpt-search-results" class="max-h-40 overflow-y-auto"></div></div></div>
-            </div>
-            <div class="grid grid-cols-4 gap-2 text-center text-[10px] font-mono">
-                <div class="bg-black/40 p-2 rounded">DIST: <span id="ofp-sum-dist" class="text-white">0</span> NM</div>
-                <div class="bg-black/40 p-2 rounded">EET: <span id="ofp-sum-eet" class="text-white">00:00</span></div>
-                <div class="bg-black/40 p-2 rounded text-amber-400">REQ: <span id="ofp-sum-req">0</span></div>
-                <div class="bg-black/40 p-2 rounded text-emerald-400">REM: <span id="ofp-sum-rem">0</span></div>
-            </div>
-            <div class="flex justify-between pt-2 border-t border-white/10"><div class="flex gap-2"><button type="button" id="btn-delete-route" onclick="deleteRouteDB()" class="text-red-400 text-xs">Delete</button><button type="button" onclick="invertRoute()" class="text-xs text-slate-400 uppercase">Invert</button></div><div class="flex gap-4"><button onclick="closeRouteModal()" class="text-slate-500 text-xs">Cancel</button><button onclick="saveRouteDB()" class="btn-tech px-6 py-2 text-white rounded text-xs font-bold">Save to Cloud</button></div></div>
         </div>
-    </div></div>
+    </div>
 
     <!-- MODAL AIRCRAFT -->
-    <div id="modal-aircraft" class="hidden fixed inset-0 z-[60] bg-black/80 flex items-center justify-center p-4"><div class="glass-panel w-full max-w-md rounded-2xl p-6">
-        <h3 class="text-white font-bold mb-4 uppercase border-b border-white/5 pb-2">Aircraft Profile</h3>
-        <form id="form-aircraft" class="space-y-4">
-            <input type="hidden" id="ac-id">
-            <input type="text" id="ac-reg" required class="tech-input w-full p-2 rounded text-sm uppercase font-bold" placeholder="Registration (e.g. PK-TWA)">
-            <select id="ac-type-select" onchange="toggleCustomAircraftType()" class="tech-input w-full p-2 rounded text-sm"><option value="Gulfstream IV SP">Gulfstream IV SP</option><option value="Beechcraft King Air 350i">Beechcraft King Air 350i</option><option value="NC212-200">NC212-200</option><option value="Bell 412 EP">Bell 412 EP</option><option value="Agusta 109S Grand">Agusta 109S Grand</option><option value="CUSTOM">Custom Type...</option></select>
-            <input type="text" id="ac-type-custom" class="hidden tech-input w-full p-2 rounded text-sm" placeholder="Input Type Manual">
-            <select id="ac-model" class="tech-input w-full p-2 rounded text-sm"><option>Fixed Wing</option><option>Helicopter</option></select>
-            <div class="grid grid-cols-2 gap-2">
-                <input type="number" id="ac-speed" required class="tech-input p-2 rounded text-sm" placeholder="Speed (KT)">
-                <div class="flex gap-1"><input type="number" id="ac-fuel" required class="tech-input w-full p-2 rounded text-sm" placeholder="Consumption"><select id="ac-fuel-unit" class="tech-input text-xs"><option>lbs</option><option>kg</option><option>liter</option></select></div>
-            </div>
-            <div class="flex justify-between pt-2 border-t border-white/10"><button type="button" id="btn-delete-ac" onclick="deleteAircraftDB()" class="text-red-400 text-xs">Delete</button><div><button type="button" onclick="closeAircraftModal()" class="text-slate-500 text-xs mr-3">Cancel</button><button type="submit" class="btn-tech px-4 py-2 text-white rounded text-xs font-bold">Save Profile</button></div></div>
-        </form>
-    </div></div>
-
-    <!-- MODAL BULK -->
-    <div id="modal-bulk-import" class="hidden fixed inset-0 z-[60] bg-black/80 flex items-center justify-center p-4"><div class="glass-panel w-full max-w-2xl rounded-2xl p-6">
-        <h3 class="text-white font-bold mb-4 uppercase border-b border-white/5 pb-2">Bulk Import (Cloud)</h3>
-        <textarea id="bulk-import-text" rows="8" class="tech-input w-full p-2 rounded text-[10px] font-mono mb-4" placeholder="Format: NAME DIR DEG MIN SEC DIR DEG MIN SEC TYPE"></textarea>
-        <div id="bulk-import-progress-container" class="hidden mb-4"><div class="w-full bg-slate-800 h-1 rounded"><div id="bulk-import-bar" class="bg-cyan-400 h-full w-0 transition-all duration-300"></div></div><p id="bulk-import-text-progress" class="text-[9px] text-center mt-1 text-cyan-400"></p></div>
-        <div class="flex justify-end gap-3"><button onclick="closeBulkImportModal()" class="text-slate-500 text-xs">Cancel</button><button onclick="processBulkImport()" class="btn-tech px-4 py-2 text-white rounded text-xs">Process & Sync</button></div>
-    </div></div>
+    <div id="modal-aircraft" class="hidden fixed inset-0 z-[60] bg-black/80 backdrop-blur-sm flex items-center justify-center p-4">
+        <div class="glass-panel w-full max-w-md rounded-2xl p-6 shadow-2xl border-cyan-500/20">
+            <h3 class="text-white font-bold mb-5 uppercase tracking-widest text-sm border-b border-white/5 pb-2">Aircraft Configuration</h3>
+            <form id="form-aircraft" class="space-y-4">
+                <input type="hidden" id="ac-id">
+                <input type="text" id="ac-reg" required class="tech-input w-full p-2.5 rounded-lg text-sm uppercase font-bold text-cyan-400" placeholder="REGISTRATION (e.g. PK-ABC)">
+                <select id="ac-type-select" onchange="toggleCustomAircraftType()" class="tech-input w-full p-2.5 rounded-lg text-sm">
+                    <option value="Gulfstream IV SP">Gulfstream IV SP</option>
+                    <option value="Beechcraft King Air 350i">Beechcraft King Air 350i</option>
+                    <option value="NC212-200">NC212-200</option>
+                    <option value="Bell 412 EP">Bell 412 EP</option>
+                    <option value="Agusta 109S Grand">Agusta 109S Grand</option>
+                    <option value="CUSTOM">Custom Fleet Model...</option>
+                </select>
+                <input type="text" id="ac-type-custom" class="hidden tech-input w-full p-2.5 rounded-lg text-sm" placeholder="Enter custom type">
+                <select id="ac-model" class="tech-input w-full p-2.5 rounded-lg text-sm"><option>Fixed Wing</option><option>Helicopter</option></select>
+                <div class="grid grid-cols-2 gap-3">
+                    <div class="bg-black/30 p-2 rounded-lg"><label class="text-[8px] text-slate-500 uppercase block mb-1">Cruise Speed</label><div class="flex items-center"><input type="number" id="ac-speed" required class="bg-transparent border-none focus:outline-none w-full text-white font-bold" placeholder="0"><span class="text-[9px] text-slate-500 ml-1">KT</span></div></div>
+                    <div class="bg-black/30 p-2 rounded-lg"><label class="text-[8px] text-slate-500 uppercase block mb-1">Fuel Flow /Hr</label><div class="flex items-center"><input type="number" id="ac-fuel" required class="bg-transparent border-none focus:outline-none w-full text-white font-bold" placeholder="0"><select id="ac-fuel-unit" class="bg-transparent text-[8px] border-none text-cyan-400 font-bold uppercase"><option>lbs</option><option>kg</option><option>liter</option></select></div></div>
+                </div>
+                <div class="flex justify-between items-center pt-4 border-t border-white/5">
+                    <button type="button" id="btn-delete-ac" onclick="deleteAircraftDB()" class="text-red-500 text-[10px] uppercase font-bold hover:underline">Retire Aircraft</button>
+                    <div class="flex gap-4">
+                        <button type="button" onclick="closeAircraftModal()" class="text-slate-500 text-[10px] uppercase font-bold">Cancel</button>
+                        <button type="submit" class="btn-tech px-6 py-2.5 text-white rounded-xl text-xs font-bold uppercase">Save Aircraft</button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
 
     <script>
-        const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzt6Dc-vZRw4gIv6oU7-cqFKkf-o3xXySd0YawCHa15UdzSicsZblCrl3c3VjDl486BkQ/exec";
+        const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxtSEMdL6Nk7LeV_auAQhmY7hAykVW7nv_Eo6aaYOYKQB8t5J-6TfFNrnd57yBtrQNXUQ/exec";
         
         let map = null, mapLayers = {}, gpsMarker = null, waypointLayerGroup = null, routeLayerGroup = null, activeRouteOnMapId = null, pendingRouteInsertion = null;
         let currentRouteWaypoints = [];
@@ -361,44 +404,50 @@
                 localStorage.setItem('skyops_data', JSON.stringify(defaultDataSkeleton));
             }
             const today = new Date().toISOString().split('T')[0];
-            document.getElementById('new-user-expiry').setAttribute('min', today);
+            const expiryInput = document.getElementById('new-user-expiry');
+            if(expiryInput) expiryInput.setAttribute('min', today);
         }
 
-        function getParsedDB() { return JSON.parse(localStorage.getItem('skyops_data')); }
+        function getParsedDB() { 
+            const data = localStorage.getItem('skyops_data');
+            return data ? JSON.parse(data) : defaultDataSkeleton; 
+        }
         
         function saveDB(data) { 
             localStorage.setItem('skyops_data', JSON.stringify(data)); 
-            syncToCloud(); // OTOMATIS SYNC SETIAP KALI SAVE
+            syncToCloud(); // Auto sync
         }
 
         // --- CLOUD SYNC LOGIC --- //
         async function syncToCloud() {
             try {
+                // Gunakan mode: 'no-cors' agar tidak terblokir browser saat kirim data (POST)
                 await fetch(GOOGLE_SCRIPT_URL, { 
                     method: 'POST', 
                     mode: 'no-cors', 
                     cache: 'no-cache',
                     body: JSON.stringify(getParsedDB()) 
                 });
-                console.log("Cloud Push Initiated...");
-            } catch (e) { showToast("Cloud Push Failed", "error"); }
+            } catch (e) { console.error("Cloud Sync Error:", e); }
         }
 
         async function loadFromCloud() {
-            showToast("Syncing with Cloud...", "info");
             try {
                 const res = await fetch(GOOGLE_SCRIPT_URL);
                 const data = await res.json();
                 if(data && data.admin) { 
                     localStorage.setItem('skyops_data', JSON.stringify(data));
-                    // Re-render all
-                    renderWaypoints(); renderAircrafts(); renderRoutes(); renderWaypointsOnMap();
-                    showToast("Cloud Data Synced", "success");
+                    // Re-render components if screens are active
+                    if(!document.getElementById('screen-main').classList.contains('hidden-screen')) {
+                        renderWaypoints(); renderAircrafts(); renderRoutes(); renderWaypointsOnMap();
+                    }
+                    return true;
                 }
-            } catch (e) { showToast("Cloud Pull Failed", "error"); }
+            } catch (e) { console.error("Cloud Fetch Error:", e); }
+            return false;
         }
 
-        // --- UI LOGIC --- //
+        // --- UI UTILS --- //
         function showToast(message, type = 'info') {
             const toast = document.getElementById('toast'), panel = document.getElementById('toast-panel'), msg = document.getElementById('toast-msg'), iconCont = document.getElementById('toast-icon-container');
             msg.textContent = message;
@@ -436,6 +485,54 @@
             if (dir === 'S' || dir === 'W') dec *= -1; return dec;
         }
 
+        // --- AUTH SYSTEM --- //
+        window.onload = () => { initDB(); setTimeout(() => switchScreen('screen-login'), 3000); };
+
+        document.getElementById('login-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const u = document.getElementById('login-user').value.trim(), p = document.getElementById('login-pass').value.trim();
+            const db = getParsedDB();
+            const btn = document.getElementById('btn-login-submit');
+
+            btn.disabled = true;
+            btn.innerHTML = '<i data-lucide="loader" class="w-4 h-4 animate-spin"></i> SYNCING...';
+            lucide.createIcons();
+
+            // Cek Admin Default (Selalu Utamakan hardcoded untuk keamanan akses)
+            if ((u === "admin" && p === "ramdan28") || (db.admin && u === db.admin.username && p === db.admin.password)) {
+                loadFromCloud().then(() => { 
+                    renderAdminConsole(); switchScreen('screen-admin'); 
+                    showToast("Admin Cloud Connected", "success");
+                });
+                return;
+            }
+            
+            // Cek User dari Database
+            const f = (db.users || []).find(x => x.username === u && x.password === p);
+            if (f) {
+                if (new Date() > new Date(f.expiry)) {
+                    showToast('Licence Expired', 'error');
+                } else {
+                    await loadFromCloud(); // Pastikan data terbaru ditarik saat user masuk
+                    setupMainDashboard(f); switchScreen('screen-main');
+                }
+            } else {
+                showToast('Invalid Operator ID or Passcode', 'error');
+            }
+            
+            btn.disabled = false;
+            btn.innerHTML = '<span>Initialize System</span><i data-lucide="arrow-right" class="w-4 h-4"></i>';
+            lucide.createIcons();
+        });
+
+        function logout() { switchScreen('screen-login'); }
+
+        function setupMainDashboard(u) {
+            document.getElementById('display-username').textContent = u.username.toUpperCase();
+            document.getElementById('display-expiry').textContent = new Date(u.expiry).toLocaleDateString('id-ID', {day:'numeric', month:'short', year:'numeric'});
+            initRealMap(); renderWaypoints(); renderAircrafts(); renderRoutes(); switchTab('tab-map');
+        }
+
         // --- MAP SYSTEM --- //
         function initRealMap() {
             if (map) return;
@@ -448,7 +545,10 @@
             waypointLayerGroup = L.layerGroup().addTo(map); routeLayerGroup = L.layerGroup().addTo(map);
             const icon = L.divIcon({ className: 'custom-gps-marker', html: `<div class="relative flex items-center justify-center w-full h-full"><div class="absolute w-12 h-12 border-2 border-cyan-400/50 rounded-full animate-ping"></div><div class="bg-skyops-dark p-2 rounded-full border border-cyan-400 shadow-lg"><i data-lucide="navigation" class="w-5 h-5 text-cyan-400 fill-cyan-400"></i></div></div>`, iconSize: [40, 40], iconAnchor: [20, 20] });
             gpsMarker = L.marker([3.5852, 98.6756], { icon, draggable: true, zIndexOffset: 1000 }).addTo(map);
-            gpsMarker.on('drag', (e) => { document.getElementById('lat-display').innerHTML = "LAT: " + formatDMS(e.target.getLatLng().lat, true); document.getElementById('lon-display').innerHTML = "LON: " + formatDMS(e.target.getLatLng().lng, false); });
+            gpsMarker.on('drag', (e) => { 
+                document.getElementById('lat-display').innerHTML = "LAT: " + formatDMS(e.target.getLatLng().lat, true); 
+                document.getElementById('lon-display').innerHTML = "LON: " + formatDMS(e.target.getLatLng().lng, false); 
+            });
             map.on('click', handleMapClick);
             renderWaypointsOnMap(); lucide.createIcons();
         }
@@ -469,42 +569,15 @@
         function recenterMap() { if (map && gpsMarker) map.flyTo(gpsMarker.getLatLng(), map.getZoom()); }
         function changeMapStyle(s) { Object.values(mapLayers).forEach(l => map.removeLayer(l)); if (mapLayers[s]) mapLayers[s].addTo(map); }
 
-        // --- APP LOGIC --- //
-        window.onload = () => { initDB(); setTimeout(() => switchScreen('screen-login'), 3000); };
-
-        document.getElementById('login-form').addEventListener('submit', async (e) => {
-            e.preventDefault();
-            const u = document.getElementById('login-user').value.trim(), p = document.getElementById('login-pass').value.trim();
-            const db = getParsedDB();
-            
-            // Cek Admin Default
-            if (u === db.admin.username && p === db.admin.password) {
-                await loadFromCloud(); // Tarik data terbaru ke local storage saat login
-                renderAdminConsole(); switchScreen('screen-admin'); return;
-            }
-            
-            // Cek User
-            const f = db.users.find(x => x.username === u && x.password === p);
-            if (f && new Date() <= new Date(f.expiry)) {
-                await loadFromCloud(); // Tarik data terbaru ke local storage saat login
-                setupMainDashboard(f); switchScreen('screen-main');
-            } else { showToast(f ? 'Expired Licence' : 'Invalid Credentials', 'error'); }
-        });
-
-        function logout() { switchScreen('screen-login'); }
-
-        function setupMainDashboard(u) {
-            document.getElementById('display-username').textContent = u.username.toUpperCase();
-            document.getElementById('display-expiry').textContent = formatDate(u.expiry);
-            initRealMap(); renderWaypoints(); renderAircrafts(); renderRoutes(); switchTab('tab-map');
-        }
-
-        // --- COMPONENTS RENDER --- //
+        // --- COMPONENTS --- //
         function renderWaypoints() {
             const db = getParsedDB(), q = document.getElementById('search-wpt-input').value.toUpperCase(), c = document.getElementById('waypoint-list'); c.innerHTML = '';
-            (db.waypoints || []).filter(w => w.name.startsWith(q)).forEach(w => {
-                const d = document.createElement('div'); d.className = "glass-panel p-2 rounded flex items-center gap-3 cursor-pointer"; d.onclick = () => openWaypointModal(w.id);
-                d.innerHTML = `<div class="w-6 h-6 rounded ${w.type==='vfr'?'bg-orange-500':w.type==='airport'?'bg-blue-500':'bg-pink-300'}"></div><div class="flex-1 text-xs"><strong>${w.name}</strong></div><button onclick="copyWaypointData(event,'${w.id}')" class="text-slate-500 p-1"><i data-lucide="copy" class="w-3 h-3"></i></button>`;
+            const list = (db.waypoints || []).filter(w => w.name.startsWith(q));
+            if(list.length === 0) { c.innerHTML = '<div class="text-center p-8 text-slate-600 text-xs italic">No waypoints found in database.</div>'; return; }
+            list.forEach(w => {
+                const d = document.createElement('div'); d.className = "glass-panel p-2 rounded-lg flex items-center gap-3 cursor-pointer hover:border-cyan-500/50";
+                d.onclick = () => openWaypointModal(w.id);
+                d.innerHTML = `<div class="w-7 h-7 rounded shrink-0 flex items-center justify-center ${w.type==='vfr'?'bg-orange-500':w.type==='airport'?'bg-blue-500':'bg-pink-300'}"><i data-lucide="${w.type==='airport'?'plane':'map-pin'}" class="w-3 h-3 text-white"></i></div><div class="flex-1 text-[11px]"><strong class="text-white">${w.name}</strong><br><span class="text-slate-500 font-mono">${formatDMS(w.lat,true)}</span></div><button onclick="copyWaypointData(event,'${w.id}')" class="text-slate-500 p-1"><i data-lucide="copy" class="w-3 h-3"></i></button>`;
                 c.appendChild(d);
             });
             lucide.createIcons();
@@ -512,10 +585,12 @@
 
         function renderRoutes() {
             const db = getParsedDB(), c = document.getElementById('route-list'); c.innerHTML = '';
-            (db.routes || []).forEach(r => {
+            const list = db.routes || [];
+            if(list.length === 0) { c.innerHTML = '<div class="text-center p-8 text-slate-600 text-xs italic">No flight plans available.</div>'; return; }
+            list.forEach(r => {
                 const d = document.createElement('div'); d.className = "glass-panel p-4 rounded-xl flex justify-between items-center cursor-pointer hover:border-cyan-500/50";
                 d.onclick = () => openRouteModal(r.id);
-                d.innerHTML = `<div><div class="font-tech text-white uppercase">${r.name}</div><div class="text-[9px] text-slate-500 font-mono">${r.waypoints.length} WPT | ${r.totalDist} NM</div></div><div class="flex gap-2"><button onclick="printRoute(event,'${r.id}')" class="p-2 bg-emerald-500/10 text-emerald-400 rounded"><i data-lucide="printer" class="w-4 h-4"></i></button><button onclick="viewRouteOnMap(event,'${r.id}')" class="p-2 bg-fuchsia-500/10 text-fuchsia-400 rounded"><i data-lucide="map" class="w-4 h-4"></i></button></div>`;
+                d.innerHTML = `<div><div class="font-tech text-white uppercase font-bold">${r.name}</div><div class="text-[9px] text-slate-500 font-mono">${r.waypoints.length} WPT | ${r.totalDist} NM</div></div><div class="flex gap-2"><button onclick="printRoute(event,'${r.id}')" class="p-2 bg-emerald-500/10 text-emerald-400 rounded-lg hover:bg-emerald-500/20"><i data-lucide="printer" class="w-4 h-4"></i></button><button onclick="viewRouteOnMap(event,'${r.id}')" class="p-2 bg-fuchsia-500/10 text-fuchsia-400 rounded-lg hover:bg-fuchsia-500/20"><i data-lucide="map" class="w-4 h-4"></i></button></div>`;
                 c.appendChild(d);
             });
             lucide.createIcons();
@@ -523,9 +598,12 @@
 
         function renderAircrafts() {
             const db = getParsedDB(), c = document.getElementById('aircraft-list'); c.innerHTML = '';
-            (db.aircrafts || []).forEach(a => {
-                const d = document.createElement('div'); d.className = "glass-panel p-3 rounded-lg cursor-pointer"; d.onclick = () => openAircraftModal(a.id);
-                d.innerHTML = `<div class="flex justify-between items-center text-xs"><span class="font-bold text-white">${a.reg}</span><span class="text-slate-500">${a.type}</span></div>`;
+            const list = db.aircrafts || [];
+            if(list.length === 0) { c.innerHTML = '<div class="text-center p-8 text-slate-600 text-xs italic">No aircraft profiles registered.</div>'; return; }
+            list.forEach(a => {
+                const d = document.createElement('div'); d.className = "glass-panel p-3 rounded-xl cursor-pointer hover:border-cyan-500/50";
+                d.onclick = () => openAircraftModal(a.id);
+                d.innerHTML = `<div class="flex justify-between items-center text-xs"><span class="font-bold text-white uppercase">${a.reg}</span><span class="text-slate-500 italic">${a.type}</span></div>`;
                 c.appendChild(d);
             });
         }
@@ -534,8 +612,8 @@
         function renderWaypointsOnMap() {
             if(!waypointLayerGroup) return; waypointLayerGroup.clearLayers();
             (getParsedDB().waypoints || []).forEach(w => {
-                const icon = L.divIcon({ className:'bg-transparent', html:`<div class="flex flex-col items-center w-24 -ml-12"><div class="w-3 h-3 border border-white rounded ${w.type==='vfr'?'bg-orange-500':w.type==='airport'?'bg-blue-500':'bg-pink-300'}"></div><div class="text-[8px] bg-black/70 px-1 rounded text-white mt-0.5">${w.name}</div></div>`, iconSize:[12,12] });
-                L.marker([w.lat, w.lng], {icon}).bindPopup(`<div class="p-2 font-sans"><strong class="text-cyan-400">${w.name}</strong><br>ELV: ${w.elev} FT<br><button onclick="actionAddToRoute('${w.id}')" class="mt-2 w-full bg-cyan-600 text-white text-[9px] p-1 rounded font-bold uppercase">Add to Route</button></div>`).addTo(waypointLayerGroup);
+                const icon = L.divIcon({ className:'bg-transparent', html:`<div class="flex flex-col items-center w-24 -ml-12"><div class="w-3 h-3 border border-white rounded shadow-lg ${w.type==='vfr'?'bg-orange-500':w.type==='airport'?'bg-blue-500':'bg-pink-300'}"></div><div class="text-[8px] bg-black/60 px-1 rounded text-white mt-0.5 font-bold border border-white/10">${w.name}</div></div>`, iconSize:[12,12] });
+                L.marker([w.lat, w.lng], {icon}).bindPopup(`<div class="p-2 font-sans"><strong class="text-cyan-400 text-sm">${w.name}</strong><br><span class="text-[10px] text-slate-400 font-mono">ELV: ${w.elev} FT</span><br><button onclick="actionAddToRoute('${w.id}')" class="mt-2 w-full bg-cyan-600 text-white text-[9px] p-1.5 rounded font-bold uppercase tracking-wider">Add to Flight Plan</button></div>`).addTo(waypointLayerGroup);
             });
         }
 
@@ -543,9 +621,9 @@
             const db = getParsedDB(); 
             if(activeRouteOnMapId) {
                 const r = db.routes.find(x => x.id === activeRouteOnMapId);
-                if(r){ r.waypoints.push(wid); recalculateRouteSummaryBackground(r,db); saveDB(db); renderRoutes(); drawActiveRouteOnMap(); }
+                if(r){ r.waypoints.push(wid); recalculateRouteSummaryBackground(r,db); saveDB(db); renderRoutes(); drawActiveRouteOnMap(); showToast("WPT Injected to Route", "success"); }
             } else {
-                openRouteModal(null); currentRouteWaypoints.push(wid); renderOFPTable();
+                openRouteModal(null); currentRouteWaypoints.push(wid); renderOFPTable(); showToast("New Flight Plan Created", "info");
             }
             map.closePopup();
         }
@@ -556,30 +634,15 @@
             const db = getParsedDB(), r = db.routes.find(x => x.id === activeRouteOnMapId);
             if (!r || r.waypoints.length < 2) return;
             const lls = []; r.waypoints.forEach(wid => { const w = db.waypoints.find(x => x.id === wid); if (w) lls.push([w.lat, w.lng]); });
-            L.polyline(lls, { color: '#d946ef', weight: 4, opacity: 0.9 }).addTo(routeLayerGroup);
+            L.polyline(lls, { color: '#d946ef', weight: 4, opacity: 0.9, lineJoin: 'round' }).addTo(routeLayerGroup);
             for (let i = 0; i < lls.length - 1; i++) {
                 const mid = [(lls[i][0] + lls[i+1][0])/2, (lls[i][1] + lls[i+1][1])/2];
-                const h = L.marker(mid, { icon: L.divIcon({ className: 'bg-white border border-fuchsia-500 rounded-full', iconSize: [8,8] }), draggable: true }).addTo(routeLayerGroup);
+                const h = L.marker(mid, { icon: L.divIcon({ className: 'bg-white border-2 border-fuchsia-500 rounded-full shadow-lg', iconSize: [10,10] }), draggable: true }).addTo(routeLayerGroup);
                 h.on('dragend', (e) => { h.setOpacity(0); handleRouteDragDrop(e.target.getLatLng(), i+1); });
             }
         }
 
-        // --- UTILS & HELPERS --- //
-        const toRad = (v) => (v * Math.PI) / 180, toDeg = (v) => (v * 180) / Math.PI;
-        function calcDistance(lat1, lon1, lat2, lon2) {
-            const R = 3440.065, dLat = toRad(lat2 - lat1), dLon = toRad(lon2 - lon1);
-            const a = Math.sin(dLat/2)**2 + Math.cos(toRad(lat1)) * Math.cos(toRad(lat2)) * Math.sin(dLon/2)**2;
-            return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-        }
-        function calcBearing(lat1, lon1, lat2, lon2) {
-            const rLat1 = toRad(lat1), rLat2 = toRad(lat2), dLon = toRad(lon2 - lon1);
-            const y = Math.sin(dLon) * Math.cos(rLat2), x = Math.cos(rLat1) * Math.sin(rLat2) - Math.sin(rLat1) * Math.cos(rLat2) * Math.cos(dLon);
-            return (toDeg(Math.atan2(y, x)) + 360) % 360;
-        }
-        function formatTimeHHMM(hrs) { const h = Math.floor(hrs), m = Math.round((hrs - h) * 60); return `${h.toString().padStart(2, '0')}:${m.toString().padStart(2, '0')}`; }
-        function formatDate(d) { return new Date(d).toLocaleDateString('id-ID', {day:'numeric', month:'short', year:'numeric'}); }
-
-        // --- FORM LOGIC --- //
+        // --- FORM & DATA LOGIC --- //
         function openWaypointModal(id=null) {
             document.getElementById('form-waypoint').reset(); document.getElementById('wpt-id').value = id || '';
             document.getElementById('btn-delete-wpt').classList.toggle('hidden', !id);
@@ -597,10 +660,11 @@
             const idx = db.waypoints.findIndex(x => x.id === w.id); if(idx>-1) db.waypoints[idx] = w; else db.waypoints.push(w);
             if(pendingRouteInsertion && !id) { const r = db.routes.find(x => x.id === pendingRouteInsertion.routeId); if(r) { r.waypoints.splice(pendingRouteInsertion.insertIndex, 0, w.id); recalculateRouteSummaryBackground(r,db); } }
             pendingRouteInsertion = null; saveDB(db); renderWaypoints(); renderWaypointsOnMap(); if(activeRouteOnMapId) drawActiveRouteOnMap(); closeWaypointModal();
+            showToast("Cloud Sync Initiated", "info");
         });
 
         function populateAircraftDropdown() {
-            const db = getParsedDB(), s = document.getElementById('ofp-aircraft'); s.innerHTML = '<option value="">-- Select --</option>';
+            const db = getParsedDB(), s = document.getElementById('ofp-aircraft'); s.innerHTML = '<option value="">-- Choose Profile --</option>';
             (db.aircrafts || []).forEach(a => { const o = document.createElement('option'); o.value = a.id; o.textContent = a.reg; s.appendChild(o); });
         }
         function openRouteModal(id=null) {
@@ -615,10 +679,10 @@
         function toggleWptSearch() { document.getElementById('wpt-search-box').classList.toggle('hidden'); }
         function filterRouteWaypointSearch() {
             const q = document.getElementById('ofp-wpt-search-input').value.toUpperCase(), db = getParsedDB(), res = document.getElementById('ofp-wpt-search-results'); res.innerHTML = '';
-            (db.waypoints || []).filter(w => w.name.includes(q)).slice(0, 5).forEach(w => {
-                const d = document.createElement('div'); d.className = "p-1 hover:bg-cyan-600 cursor-pointer text-[10px]";
+            (db.waypoints || []).filter(w => w.name.includes(q)).slice(0, 8).forEach(w => {
+                const d = document.createElement('div'); d.className = "p-2 bg-black/40 hover:bg-cyan-900 border border-white/5 rounded-lg cursor-pointer text-xs mb-1 transition-all";
                 d.onclick = () => { currentRouteWaypoints.push(w.id); toggleWptSearch(); renderOFPTable(); };
-                d.innerHTML = `<strong>${w.name}</strong>`; res.appendChild(d);
+                d.innerHTML = `<div class="flex justify-between"><strong>${w.name}</strong><span class="text-[8px] uppercase opacity-50">${w.type}</span></div>`; res.appendChild(d);
             });
         }
         function renderOFPTable() {
@@ -628,7 +692,7 @@
             currentRouteWaypoints.forEach((wid, i) => {
                 const w = db.waypoints.find(x=>x.id===wid); if(!w) return;
                 let ld = 0, lb = 0, le = 0; if(p){ ld=calcDistance(p.lat,p.lng,w.lat,w.lng); lb=calcBearing(p.lat,p.lng,w.lat,w.lng); le=spd>0?ld/spd:0; d+=ld; e+=le; }
-                const tr = document.createElement('tr'); tr.innerHTML = `<td class="p-2">${i+1}</td><td class="p-2 font-bold">${w.name}</td><td class="p-2">${i===0?'-':Math.round(lb)}°</td><td class="p-2">${ld.toFixed(1)}</td><td class="p-2">${formatTimeHHMM(le)}</td><td class="p-2"><button onclick="currentRouteWaypoints.splice(${i},1);renderOFPTable();" class="text-red-400">X</button></td>`;
+                const tr = document.createElement('tr'); tr.innerHTML = `<td class="p-3 text-slate-500">${i+1}</td><td class="p-3 font-bold text-white">${w.name}</td><td class="p-3 text-cyan-300">${i===0?'-':Math.round(lb)}°</td><td class="p-3">${ld.toFixed(1)}</td><td class="p-3 text-emerald-400">${formatTimeHHMM(le)}</td><td class="p-3 text-right"><button onclick="currentRouteWaypoints.splice(${i},1);renderOFPTable();" class="text-red-500 hover:text-red-400">×</button></td>`;
                 tb.appendChild(tr); p = w;
             });
             document.getElementById('ofp-sum-dist').textContent = d.toFixed(1); document.getElementById('ofp-sum-eet').textContent = formatTimeHHMM(e); document.getElementById('ofp-sum-req').textContent = Math.round(e * ff); document.getElementById('ofp-sum-rem').textContent = Math.round((parseFloat(document.getElementById('ofp-fob').value)||0) - (e*ff));
@@ -636,51 +700,72 @@
         function saveRouteDB() {
             const db = getParsedDB(); const id = document.getElementById('ofp-id').value;
             const r = { id: id || 'r_'+Date.now(), name: document.getElementById('ofp-route-name').value.toUpperCase(), aircraftId: document.getElementById('ofp-aircraft').value, fuelOnboard: document.getElementById('ofp-fob').value, depTime: document.getElementById('ofp-dep-time').value, waypoints: [...currentRouteWaypoints], totalDist: document.getElementById('ofp-sum-dist').textContent, totalFuel: document.getElementById('ofp-sum-req').textContent };
-            if(!r.name || currentRouteWaypoints.length<2) return showToast("Invalid Data", "error");
-            const idx = db.routes.findIndex(x=>x.id===r.id); if(idx>-1) db.routes[idx]=r; else db.routes.push(r);
-            saveDB(db); renderRoutes(); closeRouteModal(); showToast("Route Saved & Cloud Synced", "success");
+            if(!r.name || currentRouteWaypoints.length<2) return showToast("At least 2 waypoints required", "error");
+            const idx = (db.routes || []).findIndex(x=>x.id===r.id); if(idx>-1) db.routes[idx]=r; else { if(!db.routes)db.routes=[]; db.routes.push(r); }
+            saveDB(db); renderRoutes(); closeRouteModal(); showToast("Publish Success", "success");
         }
 
         function openAircraftModal(id=null) {
             document.getElementById('form-aircraft').reset(); document.getElementById('ac-id').value = id || '';
             document.getElementById('btn-delete-ac').classList.toggle('hidden', !id);
-            if(id){ const a = getParsedDB().aircrafts.find(x=>x.id===id); document.getElementById('ac-reg').value=a.reg; document.getElementById('ac-type-select').value=a.type; document.getElementById('ac-model').value=a.model; document.getElementById('ac-speed').value=a.speed; document.getElementById('ac-fuel').value=a.fuel; document.getElementById('ac-fuel-unit').value=a.fuelUnit; }
+            if(id){ const a = getParsedDB().aircrafts.find(x=>x.id === id); document.getElementById('ac-reg').value=a.reg; document.getElementById('ac-type-select').value=a.type; document.getElementById('ac-model').value=a.model; document.getElementById('ac-speed').value=a.speed; document.getElementById('ac-fuel').value=a.fuel; document.getElementById('ac-fuel-unit').value=a.fuelUnit; }
             document.getElementById('modal-aircraft').classList.remove('hidden');
         }
         function closeAircraftModal() { document.getElementById('modal-aircraft').classList.add('hidden'); }
         document.getElementById('form-aircraft').addEventListener('submit', (e) => {
             e.preventDefault(); const db = getParsedDB(), id = document.getElementById('ac-id').value;
-            const a = { id: id || 'ac_'+Date.now(), reg: document.getElementById('ac-reg').value.toUpperCase(), type: document.getElementById('ac-type-select').value === 'CUSTOM' ? document.getElementById('ac-type-custom').value : document.getElementById('ac-type-select').value, model: document.getElementById('ac-model').value, speed: document.getElementById('ac-speed').value, fuel: document.getElementById('ac-fuel').value, fuelUnit: document.getElementById('ac-fuel-unit').value };
-            const idx = db.aircrafts.findIndex(x=>x.id===a.id); if(idx>-1) db.aircrafts[idx]=a; else db.aircrafts.push(a);
+            const type = document.getElementById('ac-type-select').value === 'CUSTOM' ? document.getElementById('ac-type-custom').value : document.getElementById('ac-type-select').value;
+            const a = { id: id || 'ac_'+Date.now(), reg: document.getElementById('ac-reg').value.toUpperCase(), type, model: document.getElementById('ac-model').value, speed: document.getElementById('ac-speed').value, fuel: document.getElementById('ac-fuel').value, fuelUnit: document.getElementById('ac-fuel-unit').value };
+            if(!db.aircrafts) db.aircrafts=[]; const idx = db.aircrafts.findIndex(x=>x.id===a.id); if(idx>-1) db.aircrafts[idx]=a; else db.aircrafts.push(a);
             saveDB(db); renderAircrafts(); closeAircraftModal();
         });
 
-        // --- AUTH & ADMIN --- //
-        function renderUserTable() {
-            const db = getParsedDB(), tb = document.getElementById('user-table-body'); tb.innerHTML = '';
-            document.getElementById('user-count').textContent = `${db.users.length} Users`;
-            db.users.forEach(u => {
-                const tr = document.createElement('tr');
-                tr.innerHTML = `<td class="p-2">${u.username}</td><td class="p-2 font-mono">${u.password}</td><td class="p-2 text-[10px]">${formatDate(u.expiry)}</td><td class="p-2 text-right"><button onclick="deleteUser('${u.id}')" class="text-red-400">X</button></td>`;
-                tb.appendChild(tr);
-            });
+        // --- ADMIN HELPERS --- //
+        function renderAdminConsole() {
+            const db = getParsedDB();
+            document.getElementById('edit-admin-user').value = db.admin.username;
+            document.getElementById('edit-admin-pass').value = db.admin.password;
+            renderUserTable();
         }
-        function deleteUser(id) { if(confirm('Delete user?')){ const db=getParsedDB(); db.users=db.users.filter(x=>x.id!==id); saveDB(db); renderUserTable(); }}
         document.getElementById('admin-update-form').addEventListener('submit', (e) => {
             e.preventDefault(); const db = getParsedDB();
             db.admin.username = document.getElementById('edit-admin-user').value.trim();
             db.admin.password = document.getElementById('edit-admin-pass').value.trim();
-            saveDB(db); showToast("Admin Updated", "success");
+            saveDB(db); showToast("Cloud Admin Credentials Updated", "success");
         });
         document.getElementById('add-user-form').addEventListener('submit', (e) => {
-            e.preventDefault(); const db = getParsedDB();
+            e.preventDefault(); const db = getParsedDB(); if(!db.users) db.users=[];
             db.users.push({ id: Date.now().toString(), username: document.getElementById('new-user-name').value.trim(), password: document.getElementById('new-user-pass').value.trim(), expiry: document.getElementById('new-user-expiry').value });
-            saveDB(db); e.target.reset(); renderUserTable();
+            saveDB(db); e.target.reset(); renderUserTable(); showToast("Operator Authorized", "success");
         });
 
-        // --- BULK --- //
-        function openBulkImportModal() { document.getElementById('modal-bulk-import').classList.remove('hidden'); }
+        // --- HELPERS --- //
+        const toRad_ = (v) => (v * Math.PI) / 180;
+        function calcDistance(lat1, lon1, lat2, lon2) {
+            const R = 3440.065, dLat = toRad_(lat2 - lat1), dLon = toRad_(lon2 - lon1);
+            const a = Math.sin(dLat/2)**2 + Math.cos(toRad_(lat1)) * Math.cos(toRad_(lat2)) * Math.sin(dLon/2)**2;
+            return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+        }
+        function calcBearing(lat1, lon1, lat2, lon2) {
+            const rLat1 = toRad_(lat1), rLat2 = toRad_(lat2), dLon = toRad_(lon2 - lon1);
+            const y = Math.sin(dLon) * Math.cos(rLat2), x = Math.cos(rLat1) * Math.sin(rLat2) - Math.sin(rLat1) * Math.cos(rLat2) * Math.cos(dLon);
+            return (toDeg(Math.atan2(y, x)) + 360) % 360;
+        }
+        function toDeg(v) { return (v * 180) / Math.PI; }
+        function formatTimeHHMM(hrs) { const h = Math.floor(hrs), m = Math.round((hrs - h) * 60); return `${h.toString().padStart(2, '0')}:${m.toString().padStart(2, '0')}`; }
+
+        function toggleCustomAircraftType() { document.getElementById('ac-type-custom').classList.toggle('hidden', document.getElementById('ac-type-select').value !== 'CUSTOM'); }
+        function deleteWaypointDB() { if(confirm('Delete waypoint?')){ const db=getParsedDB(), id=document.getElementById('wpt-id').value; db.waypoints=db.waypoints.filter(x=>x.id!==id); saveDB(db); renderWaypoints(); renderWaypointsOnMap(); closeWaypointModal(); }}
+        function deleteAircraftDB() { if(confirm('Retire aircraft?')){ const db=getParsedDB(), id=document.getElementById('ac-id').value; db.aircrafts=db.aircrafts.filter(x=>x.id!==id); saveDB(db); renderAircrafts(); closeAircraftModal(); }}
+        function deleteRouteDB() { if(confirm('Delete flight plan?')){ const db=getParsedDB(), id=document.getElementById('ofp-id').value; db.routes=db.routes.filter(x=>x.id!==id); saveDB(db); renderRoutes(); closeRouteModal(); }}
+        function printRoute(e, id) { e.stopPropagation(); const db=getParsedDB(), r=db.routes.find(x=>x.id===id); if(r) { const ac=db.aircrafts.find(a=>a.id===r.aircraftId)||{reg:'N/A', fuelUnit:'Units'}; document.getElementById('print-area').innerHTML = `<div style="padding:40px;color:black;font-family:sans-serif;background:white;"><h1 style="border-bottom:2px solid black;margin-bottom:10px;">SkyOps OFP: ${r.name}</h1><p>REG: ${ac.reg} | DEP: ${r.depTime}Z | DIST: ${r.totalDist} NM | FUEL REQ: ${r.totalFuel} ${ac.fuelUnit}</p></div>`; window.print(); }}
+        function viewRouteOnMap(e, id) { e.stopPropagation(); activeRouteOnMapId = id; switchTab('tab-map'); setTimeout(() => { map.invalidateSize(); drawActiveRouteOnMap(); }, 300); }
+        function invertRoute() { currentRouteWaypoints.reverse(); renderOFPTable(); }
+        async function handleRouteDragDrop(ll, idx) { const ev=await fetchElevation(ll.lat,ll.lng); pendingRouteInsertion={routeId:activeRouteOnMapId, insertIndex:idx}; openWaypointModalFromMap(ll.lat,ll.lng,ev); }
+        function toggleWptSearch() { document.getElementById('wpt-search-box').classList.toggle('hidden'); }
         function closeBulkImportModal() { document.getElementById('modal-bulk-import').classList.add('hidden'); }
+        function openBulkImportModal() { document.getElementById('modal-bulk-import').classList.remove('hidden'); }
+        function copyWaypointData(e,id){ e.stopPropagation(); const w=getParsedDB().waypoints.find(x=>x.id===id); const t=`*WPT: ${w.name}*\nLat: ${formatDMS(w.lat,true)}\nLon: ${formatDMS(w.lng,false)}\nElev: ${w.elev} FT`; const el=document.createElement('textarea'); el.value=t; document.body.appendChild(el); el.select(); document.execCommand('copy'); document.body.removeChild(el); showToast("Data Copied", "success"); }
         async function processBulkImport() {
             const txt = document.getElementById('bulk-import-text').value, lines = txt.split('\n'), db = getParsedDB();
             document.getElementById('bulk-import-progress-container').classList.remove('hidden');
@@ -691,20 +776,10 @@
                 const ev = await fetchElevation(la,ln);
                 db.waypoints.push({ id:'w_'+Date.now()+'_'+i, name:p[0].toUpperCase(), lat:la, lng:ln, elev:ev, type:p[9].toLowerCase() });
                 document.getElementById('bulk-import-bar').style.width = ((i+1)/lines.length*100)+'%';
+                document.getElementById('bulk-import-text-progress').innerText = `SYNCING ${i+1}/${lines.length}`;
             }
             saveDB(db); renderWaypoints(); renderWaypointsOnMap(); closeBulkImportModal();
         }
-
-        // Dummy functions to avoid errors
-        function toggleCustomAircraftType() { document.getElementById('ac-type-custom').classList.toggle('hidden', document.getElementById('ac-type-select').value !== 'CUSTOM'); }
-        function deleteWaypointDB() { const id=document.getElementById('wpt-id').value; if(id){ const db=getParsedDB(); db.waypoints=db.waypoints.filter(x=>x.id!==id); saveDB(db); renderWaypoints(); renderWaypointsOnMap(); closeWaypointModal(); }}
-        function deleteAircraftDB() { const id=document.getElementById('ac-id').value; if(id){ const db=getParsedDB(); db.aircrafts=db.aircrafts.filter(x=>x.id!==id); saveDB(db); renderAircrafts(); closeAircraftModal(); }}
-        function deleteRouteDB() { const id=document.getElementById('ofp-id').value; if(id){ const db=getParsedDB(); db.routes=db.routes.filter(x=>x.id!==id); saveDB(db); renderRoutes(); closeRouteModal(); }}
-        function printRoute(e, id) { e.stopPropagation(); const r=getParsedDB().routes.find(x=>x.id===id); if(r) { document.getElementById('print-area').innerHTML = `<div class="p-10 text-black"><h1>OFP: ${r.name}</h1><p>Distance: ${r.totalDist} NM</p></div>`; window.print(); }}
-        function viewRouteOnMap(e, id) { e.stopPropagation(); activeRouteOnMapId = id; switchTab('tab-map'); setTimeout(() => { map.invalidateSize(); drawActiveRouteOnMap(); }, 300); }
-        function invertRoute() { currentRouteWaypoints.reverse(); renderOFPTable(); }
-        async function handleRouteDragDrop(ll, idx) { const db=getParsedDB(); const ev=await fetchElevation(ll.lat,ll.lng); pendingRouteInsertion={routeId:activeRouteOnMapId, insertIndex:idx}; openWaypointModalFromMap(ll.lat,ll.lng,ev); }
-
     </script>
 </body>
 </html>
