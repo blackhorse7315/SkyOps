@@ -545,7 +545,7 @@
             const newWp = { 
                 id: Date.now(), 
                 name: name.toUpperCase(), 
-                type, lat, lon, elev,
+                type, lat, lon, elev: elev || 0,
                 dms: `${decToDms(lat, true)} ${decToDms(lon, false)}`
             };
 
@@ -619,50 +619,78 @@
             lucide.createIcons();
         }
 
-        // --- BULK PARSE ---
+        // --- BULK PARSE (FIXED) ---
         function importParse() {
             const raw = document.getElementById('parseInput').value;
             const lines = raw.split('\n');
             let count = 0;
 
             lines.forEach(line => {
+                if (!line.trim()) return;
+
+                // Regex untuk mengekstrak data meskipun spasi bervariasi
+                // Format: NAME LAT_DIR LAT_D LAT_M LAT_S LON_DIR LON_D LON_M LON_S TYPE
+                // Atau: NAME [NS]XX XX'XX" [EW]XXX XX'XX" TYPE
+                
                 const parts = line.trim().split(/\s+/);
-                if (parts.length >= 8) {
+                
+                if (parts.length >= 6) {
                     try {
-                        const name = parts[0];
-                        const latDir = parts[1].charAt(0);
-                        const latD = parts[1].substring(1);
-                        const latM = parts[2].replace("'", "");
-                        const latS = parts[3].replace('"', "");
-
-                        const lonDir = parts[4].charAt(0);
-                        const lonD = parts[4].substring(1);
-                        const lonM = parts[5].replace("'", "");
-                        const lonS = parts[6].replace('"', "");
+                        let name = parts[0];
+                        let latPart = "", lonPart = "", type = "VFR";
                         
-                        const type = parts[7] || 'VFR';
+                        // Deteksi Latitude (selalu diawali N atau S)
+                        const latIdx = parts.findIndex(p => /^[NS]/i.test(p));
+                        // Deteksi Longitude (selalu diawali E atau W)
+                        const lonIdx = parts.findIndex(p => /^[EW]/i.test(p));
+                        
+                        if (latIdx !== -1 && lonIdx !== -1) {
+                            // Ekstrak Latitude DMS
+                            const latDir = parts[latIdx].charAt(0).toUpperCase();
+                            const latD = parts[latIdx].substring(1);
+                            
+                            // Ambil menit dan detik dari part setelah latIdx hingga sebelum lonIdx
+                            let latMS = parts.slice(latIdx + 1, lonIdx).join(" ");
+                            let [latM, latS] = latMS.split(/['’"”\s]+/).filter(x => x);
 
-                        const lat = dmsToDec(latD, latM, latS, latDir);
-                        const lon = dmsToDec(lonD, lonM, lonS, lonDir);
+                            // Ekstrak Longitude DMS
+                            const lonDir = parts[lonIdx].charAt(0).toUpperCase();
+                            const lonD = parts[lonIdx].substring(1);
+                            
+                            // Ambil menit dan detik dari part setelah lonIdx hingga sebelum akhir (type)
+                            let lonMS = parts.slice(lonIdx + 1, parts.length - 1).join(" ");
+                            let [lonM, lonS] = lonMS.split(/['’"”\s]+/).filter(x => x);
+                            
+                            type = parts[parts.length - 1].toUpperCase();
 
-                        waypoints.push({
-                            id: Date.now() + Math.random(),
-                            name: name.toUpperCase(),
-                            type: type.toUpperCase(),
-                            lat, lon, elev: 0,
-                            dms: `${decToDms(lat, true)} ${decToDms(lon, false)}`
-                        });
-                        count++;
-                    } catch (e) { }
+                            const lat = dmsToDec(latD, latM, latS, latDir);
+                            const lon = dmsToDec(lonD, lonM, lonS, lonDir);
+
+                            waypoints.push({
+                                id: Date.now() + Math.random(),
+                                name: name.toUpperCase(),
+                                type: type,
+                                lat, lon, elev: 0,
+                                dms: `${decToDms(lat, true)} ${decToDms(lon, false)}`
+                            });
+                            count++;
+                        }
+                    } catch (e) {
+                        console.error("Gagal memproses baris:", line, e);
+                    }
                 }
             });
 
-            saveToStorage();
-            renderWaypointList();
-            updateMapWaypoints();
-            toggleModal('modalParse');
-            document.getElementById('parseInput').value = "";
-            alert(`${count} waypoints berhasil diimport!`);
+            if (count > 0) {
+                saveToStorage();
+                renderWaypointList();
+                updateMapWaypoints();
+                toggleModal('modalParse');
+                document.getElementById('parseInput').value = "";
+                alert(`${count} waypoint berhasil diimport!`);
+            } else {
+                alert("Tidak ada data valid yang ditemukan. Pastikan format sesuai contoh:\nRANDU S07 06'10\" E109 19'31\" VFR");
+            }
         }
 
         // --- ADMIN ---
