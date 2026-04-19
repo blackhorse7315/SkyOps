@@ -193,6 +193,9 @@
                                 <input type="text" id="wpSearch" oninput="filterWaypoints()" placeholder="Cari NavData (Contoh: CI...)" class="w-full pl-10 pr-4 py-2 rounded-xl border border-slate-200 focus:ring-2 focus:ring-blue-500 outline-none text-sm">
                             </div>
                             <div class="flex items-center space-x-2 ml-4">
+                                <button onclick="confirmDeleteAll()" class="bg-red-500 text-white px-4 py-2 rounded-xl text-xs font-bold flex items-center transition-all hover:bg-red-600 shadow-md shadow-red-500/20">
+                                    <i data-lucide="trash-2" class="w-3.5 h-3.5 mr-2"></i> Delete All
+                                </button>
                                 <button onclick="toggleModal('modalParse')" class="bg-slate-800 text-white px-4 py-2 rounded-xl text-xs font-bold flex items-center transition-all hover:bg-slate-700">
                                     <i data-lucide="file-text" class="w-3.5 h-3.5 mr-2"></i> Parse Waypoint
                                 </button>
@@ -332,6 +335,21 @@
         </div>
     </div>
 
+    <!-- MODAL CONFIRMATION (CUSTOM MESSAGE BOX) -->
+    <div id="modalConfirm" class="hidden fixed inset-0 z-[3000] bg-slate-900/70 backdrop-blur-md flex items-center justify-center p-4">
+        <div class="bg-white w-full max-w-sm rounded-3xl shadow-2xl p-8 text-center animate-in zoom-in duration-200">
+            <div id="confirmIcon" class="w-16 h-16 bg-red-100 text-red-600 rounded-full flex items-center justify-center mx-auto mb-4">
+                <i data-lucide="alert-triangle" class="w-8 h-8"></i>
+            </div>
+            <h3 id="confirmTitle" class="text-xl font-bold text-slate-800 mb-2">Konfirmasi</h3>
+            <p id="confirmMessage" class="text-sm text-slate-500 mb-8">Apakah Anda yakin ingin melakukan tindakan ini?</p>
+            <div class="flex space-x-3">
+                <button id="confirmYes" class="flex-1 bg-red-600 text-white py-3 rounded-2xl font-bold hover:bg-red-700 transition-all shadow-lg shadow-red-500/20">Ya, Hapus</button>
+                <button onclick="closeConfirm()" class="flex-1 bg-slate-100 text-slate-600 py-3 rounded-2xl font-bold hover:bg-slate-200 transition-all">Batal</button>
+            </div>
+        </div>
+    </div>
+
     <!-- SYNC NOTIFICATION -->
     <div id="syncLoading" class="flex items-center space-x-3">
         <div class="w-4 h-4 border-2 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
@@ -366,6 +384,30 @@
             initMap();
             renderWaypointList();
         };
+
+        // --- CUSTOM CONFIRMATION LOGIC ---
+        function showConfirm(title, message, onYes, icon = 'alert-triangle', colorClass = 'bg-red-100 text-red-600') {
+            const modal = document.getElementById('modalConfirm');
+            const titleEl = document.getElementById('confirmTitle');
+            const messageEl = document.getElementById('confirmMessage');
+            const yesBtn = document.getElementById('confirmYes');
+            const iconBox = document.getElementById('confirmIcon');
+
+            titleEl.innerText = title;
+            messageEl.innerText = message;
+            iconBox.className = `w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4 ${colorClass}`;
+            
+            modal.classList.remove('hidden');
+
+            yesBtn.onclick = () => {
+                onYes();
+                closeConfirm();
+            };
+        }
+
+        function closeConfirm() {
+            document.getElementById('modalConfirm').classList.add('hidden');
+        }
 
         // --- AUTH ---
         function handleLogin() {
@@ -474,7 +516,7 @@
         }
 
         function locateMe() {
-            if (!navigator.geolocation) return alert("GPS tidak didukung oleh browser Anda.");
+            if (!navigator.geolocation) return;
             
             navigator.geolocation.getCurrentPosition((pos) => {
                 const { latitude, longitude } = pos.coords;
@@ -490,9 +532,7 @@
                 });
                 
                 userMarker = L.marker([latitude, longitude], { icon: pulseIcon }).addTo(map);
-            }, (err) => {
-                alert("Gagal mendeteksi lokasi: " + err.message);
-            }, { enableHighAccuracy: true });
+            }, null, { enableHighAccuracy: true });
         }
 
         // --- WAYPOINT ---
@@ -589,11 +629,31 @@
         }
 
         function deleteWp(id) {
-            if(!confirm("Hapus waypoint ini?")) return;
-            waypoints = waypoints.filter(wp => wp.id !== id);
-            saveToStorage();
-            renderWaypointList();
-            updateMapWaypoints();
+            showConfirm(
+                "Hapus Waypoint", 
+                "Apakah Anda yakin ingin menghapus waypoint ini secara permanen?", 
+                () => {
+                    waypoints = waypoints.filter(wp => wp.id !== id);
+                    saveToStorage();
+                    renderWaypointList();
+                    updateMapWaypoints();
+                }
+            );
+        }
+
+        // --- NEW: DELETE ALL WAYPOINTS ---
+        function confirmDeleteAll() {
+            if (waypoints.length === 0) return;
+            showConfirm(
+                "Hapus Semua Waypoint", 
+                `Anda akan menghapus seluruh data (${waypoints.length}) waypoint. Tindakan ini tidak dapat dibatalkan!`, 
+                () => {
+                    waypoints = [];
+                    saveToStorage();
+                    renderWaypointList();
+                    updateMapWaypoints();
+                }
+            );
         }
 
         function updateMapWaypoints() {
@@ -619,7 +679,7 @@
             lucide.createIcons();
         }
 
-        // --- BULK PARSE (FIXED) ---
+        // --- BULK PARSE ---
         function importParse() {
             const raw = document.getElementById('parseInput').value;
             const lines = raw.split('\n');
@@ -627,41 +687,26 @@
 
             lines.forEach(line => {
                 if (!line.trim()) return;
-
-                // Regex untuk mengekstrak data meskipun spasi bervariasi
-                // Format: NAME LAT_DIR LAT_D LAT_M LAT_S LON_DIR LON_D LON_M LON_S TYPE
-                // Atau: NAME [NS]XX XX'XX" [EW]XXX XX'XX" TYPE
-                
                 const parts = line.trim().split(/\s+/);
                 
                 if (parts.length >= 6) {
                     try {
                         let name = parts[0];
-                        let latPart = "", lonPart = "", type = "VFR";
-                        
-                        // Deteksi Latitude (selalu diawali N atau S)
                         const latIdx = parts.findIndex(p => /^[NS]/i.test(p));
-                        // Deteksi Longitude (selalu diawali E atau W)
                         const lonIdx = parts.findIndex(p => /^[EW]/i.test(p));
                         
                         if (latIdx !== -1 && lonIdx !== -1) {
-                            // Ekstrak Latitude DMS
                             const latDir = parts[latIdx].charAt(0).toUpperCase();
                             const latD = parts[latIdx].substring(1);
-                            
-                            // Ambil menit dan detik dari part setelah latIdx hingga sebelum lonIdx
                             let latMS = parts.slice(latIdx + 1, lonIdx).join(" ");
                             let [latM, latS] = latMS.split(/['’"”\s]+/).filter(x => x);
 
-                            // Ekstrak Longitude DMS
                             const lonDir = parts[lonIdx].charAt(0).toUpperCase();
                             const lonD = parts[lonIdx].substring(1);
-                            
-                            // Ambil menit dan detik dari part setelah lonIdx hingga sebelum akhir (type)
                             let lonMS = parts.slice(lonIdx + 1, parts.length - 1).join(" ");
                             let [lonM, lonS] = lonMS.split(/['’"”\s]+/).filter(x => x);
                             
-                            type = parts[parts.length - 1].toUpperCase();
+                            let type = parts[parts.length - 1].toUpperCase();
 
                             const lat = dmsToDec(latD, latM, latS, latDir);
                             const lon = dmsToDec(lonD, lonM, lonS, lonDir);
@@ -675,9 +720,7 @@
                             });
                             count++;
                         }
-                    } catch (e) {
-                        console.error("Gagal memproses baris:", line, e);
-                    }
+                    } catch (e) { }
                 }
             });
 
@@ -687,9 +730,6 @@
                 updateMapWaypoints();
                 toggleModal('modalParse');
                 document.getElementById('parseInput').value = "";
-                alert(`${count} waypoint berhasil diimport!`);
-            } else {
-                alert("Tidak ada data valid yang ditemukan. Pastikan format sesuai contoh:\nRANDU S07 06'10\" E109 19'31\" VFR");
             }
         }
 
@@ -738,11 +778,15 @@
         }
 
         function deleteUser(idx) {
-            if(confirm("Hapus user ini?")) {
-                users.splice(idx, 1);
-                saveToStorage();
-                renderAdminUsers();
-            }
+            showConfirm(
+                "Hapus User", 
+                "Apakah Anda yakin ingin menghapus akses pengguna ini?", 
+                () => {
+                    users.splice(idx, 1);
+                    saveToStorage();
+                    renderAdminUsers();
+                }
+            );
         }
 
         // --- DATABASE & SYNC ---
@@ -771,7 +815,6 @@
             }).then(() => {
                 setTimeout(() => { loader.style.display = 'none'; }, 1000);
             }).catch(err => {
-                console.error("Sync error:", err);
                 loader.style.display = 'none';
             });
         }
