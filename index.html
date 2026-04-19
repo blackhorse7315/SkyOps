@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="id">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -9,27 +9,38 @@
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap');
         
         body {
             font-family: 'Inter', sans-serif;
-            background-color: #f8fafc;
+            background-color: #0f172a;
+            color: #f8fafc;
             overflow: hidden;
         }
 
-        .fade-in { animation: fadeIn 1.5s ease-in forwards; }
-        .fade-out { animation: fadeOut 1.5s ease-out forwards; }
-        
-        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
-        @keyframes fadeOut { from { opacity: 1; } to { opacity: 0; } }
+        /* Glassmorphism */
+        .glass {
+            background: rgba(30, 41, 59, 0.7);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
 
-        #map { height: calc(100vh - 120px); width: 100%; z-index: 1; }
+        /* Animations */
+        @keyframes fadeInOut {
+            0% { opacity: 0; transform: scale(0.95); }
+            20% { opacity: 1; transform: scale(1); }
+            80% { opacity: 1; transform: scale(1); }
+            100% { opacity: 0; transform: scale(1.05); }
+        }
 
-        .pulse-marker {
-            width: 20px;
-            height: 20px;
-            background: rgba(59, 130, 246, 0.6);
-            border: 2px solid white;
+        .splash-active {
+            animation: fadeInOut 3s forwards;
+        }
+
+        .pulse-blue {
+            width: 15px;
+            height: 15px;
+            background: #3b82f6;
             border-radius: 50%;
             box-shadow: 0 0 0 rgba(59, 130, 246, 0.4);
             animation: pulse 2s infinite;
@@ -41,782 +52,416 @@
             100% { box-shadow: 0 0 0 0 rgba(59, 130, 246, 0); }
         }
 
-        .waypoint-label {
-            background: rgba(0,0,0,0.8);
-            border: none;
-            color: white;
-            font-weight: bold;
-            font-size: 10px;
-            border-radius: 4px;
-            padding: 2px 5px;
-        }
+        #map { height: calc(100vh - 120px); width: 100%; z-index: 1; }
 
-        .custom-scrollbar::-webkit-scrollbar { width: 6px; }
-        .custom-scrollbar::-webkit-scrollbar-track { background: #f1f1f1; }
-        .custom-scrollbar::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
-
-        /* Icon Types */
-        .icon-vfr { width: 12px; height: 12px; background: #f97316; border: 1px solid white; }
-        .icon-airport { width: 20px; height: 20px; background: #3b82f6; border-radius: 50%; display: flex; align-items: center; justify-content: center; border: 1px solid white; color: white; font-size: 10px; }
-        .icon-heliport { width: 20px; height: 20px; background: #f472b6; border-radius: 50%; display: flex; align-items: center; justify-content: center; border: 1px solid white; color: white; font-weight: bold; font-size: 10px; }
-
-        /* Loading Overlay */
-        #syncLoading {
-            display: none;
-            position: fixed;
-            bottom: 20px;
-            left: 20px;
-            z-index: 5000;
-            background: white;
-            padding: 10px 20px;
-            border-radius: 12px;
-            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
-            border: 1px solid #e2e8f0;
+        .nav-tab.active {
+            border-bottom: 3px solid #3b82f6;
+            color: #3b82f6;
+            background: rgba(59, 130, 246, 0.1);
         }
     </style>
 </head>
-<body class="bg-slate-50">
+<body>
 
-    <!-- SPLASH SCREEN -->
-    <div id="splashScreen" class="fixed inset-0 z-[9999] bg-slate-900 flex flex-col items-center justify-center text-white transition-opacity duration-1000">
-        <div class="mb-6">
-            <img src="https://lh3.googleusercontent.com/d/1HzKe-3FS_hP-MjbOHc-mkyierhu5kVp-" alt="Logo" class="w-32 h-32 object-contain animate-bounce" />
-        </div>
-        <h1 class="text-3xl font-light tracking-widest">Welcome To</h1>
-        <h2 class="text-4xl font-bold text-blue-400 mt-2">SkyOps Navigation Pro V.00</h2>
-        <div class="mt-8 flex space-x-2">
-            <div class="w-2 h-2 bg-blue-500 rounded-full animate-ping"></div>
-            <div class="w-2 h-2 bg-blue-500 rounded-full animate-ping delay-75"></div>
-            <div class="w-2 h-2 bg-blue-500 rounded-full animate-ping delay-150"></div>
+    <!-- OPENING SPLASH SCREEN -->
+    <div id="splash-screen" class="fixed inset-0 z-[9999] bg-[#0f172a] flex flex-col items-center justify-center">
+        <div class="splash-active flex flex-col items-center">
+            <img src="https://lh3.googleusercontent.com/d/1HzKe-3FS_hP-MjbOHc-mkyierhu5kVp-" alt="Logo" class="w-32 h-32 mb-6 object-contain">
+            <h1 class="text-3xl font-light tracking-[0.2em] text-white">SKY OPS</h1>
+            <p class="text-blue-400 mt-2 tracking-widest text-sm uppercase">Navigation Pro V.00</p>
         </div>
     </div>
 
-    <!-- LOGIN SCREEN -->
-    <div id="loginScreen" class="hidden fixed inset-0 z-[999] bg-slate-100 flex items-center justify-center p-4 bg-[url('https://images.unsplash.com/photo-1464039397811-476f652a343b?q=80&w=2068&auto=format&fit=crop')] bg-cover bg-center">
-        <div class="absolute inset-0 bg-slate-900/40 backdrop-blur-sm"></div>
-        <div class="relative bg-white/90 backdrop-blur-md p-8 rounded-3xl shadow-2xl w-full max-w-md border border-white/50">
-            <div class="flex flex-col items-center mb-8">
-                <img src="https://lh3.googleusercontent.com/d/1HzKe-3FS_hP-MjbOHc-mkyierhu5kVp-" alt="Logo" class="w-20 h-20 object-contain mb-4" />
-                <h2 class="text-2xl font-bold text-slate-800">SkyOps Access</h2>
-                <p class="text-slate-500 text-sm">Silakan login untuk navigasi</p>
+    <!-- LOGIN PAGE -->
+    <div id="login-page" class="hidden fixed inset-0 z-[999] bg-[#0f172a] flex items-center justify-center p-4">
+        <div class="glass p-8 rounded-2xl w-full max-w-md shadow-2xl border border-white/10">
+            <div class="text-center mb-8">
+                <img src="https://lh3.googleusercontent.com/d/1HzKe-3FS_hP-MjbOHc-mkyierhu5kVp-" alt="Logo" class="w-20 h-20 mx-auto mb-4 object-contain">
+                <h2 class="text-2xl font-bold">Log In</h2>
+                <p class="text-slate-400 text-sm">Enter your credentials to fly</p>
             </div>
             <div class="space-y-4">
                 <div>
-                    <label class="block text-xs font-semibold text-slate-500 uppercase mb-1">Username</label>
-                    <input type="text" id="loginUser" class="w-full px-4 py-3 rounded-xl bg-slate-50 border border-slate-200 focus:ring-2 focus:ring-blue-500 outline-none transition-all" placeholder="Username">
+                    <label class="block text-xs uppercase tracking-wider text-slate-500 mb-1">Username</label>
+                    <input type="text" id="username" class="w-full bg-slate-800 border border-slate-700 rounded-lg p-3 outline-none focus:border-blue-500 transition" placeholder="Username">
                 </div>
                 <div>
-                    <label class="block text-xs font-semibold text-slate-500 uppercase mb-1">Password</label>
-                    <input type="password" id="loginPass" class="w-full px-4 py-3 rounded-xl bg-slate-50 border border-slate-200 focus:ring-2 focus:ring-blue-500 outline-none transition-all" placeholder="••••••••">
+                    <label class="block text-xs uppercase tracking-wider text-slate-500 mb-1">Password</label>
+                    <input type="password" id="password" class="w-full bg-slate-800 border border-slate-700 rounded-lg p-3 outline-none focus:border-blue-500 transition" placeholder="••••••••">
                 </div>
-                <button onclick="handleLogin()" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 rounded-xl transition-all shadow-lg shadow-blue-500/30 flex items-center justify-center">
-                    <span>Login Navigation</span>
-                    <i data-lucide="chevron-right" class="ml-2 w-5 h-5"></i>
+                <button onclick="handleLogin()" class="w-full bg-blue-600 hover:bg-blue-500 text-white font-bold py-3 rounded-lg mt-4 transition duration-300 shadow-lg shadow-blue-900/20">
+                    ACCESS SYSTEM
                 </button>
-                <div id="loginError" class="text-red-500 text-xs text-center font-medium h-4"></div>
+                <div id="login-error" class="text-red-400 text-sm text-center mt-2 hidden">Invalid credentials or account expired.</div>
+            </div>
+            
+            <div class="mt-8 pt-6 border-t border-slate-700/50">
+                <p class="text-[10px] text-center text-slate-500 tracking-widest">ENCRYPTED CONNECTION SECURED</p>
             </div>
         </div>
     </div>
 
-    <!-- MAIN DASHBOARD -->
-    <div id="mainDashboard" class="hidden flex flex-col h-screen">
+    <!-- MAIN APPLICATION -->
+    <div id="app-container" class="hidden flex flex-col h-screen overflow-hidden">
         <!-- HEADER -->
-        <header class="bg-white border-b border-slate-200 px-6 py-3 flex items-center justify-between shadow-sm z-50">
-            <div class="flex items-center space-x-4">
-                <img src="https://lh3.googleusercontent.com/d/1HzKe-3FS_hP-MjbOHc-mkyierhu5kVp-" alt="Logo" class="w-10 h-10 object-contain" />
+        <header class="glass h-16 flex items-center justify-between px-6 z-50">
+            <div class="flex items-center gap-3">
+                <img src="https://lh3.googleusercontent.com/d/1HzKe-3FS_hP-MjbOHc-mkyierhu5kVp-" alt="Logo" class="w-8 h-8 object-contain">
                 <div>
-                    <h1 class="text-lg font-bold text-slate-800 leading-tight">Welcome to SkyOps Navigation Pro V.00</h1>
-                    <p id="expiryInfo" class="text-[10px] text-slate-500 font-medium bg-slate-100 px-2 py-0.5 rounded-full inline-block"></p>
+                    <h1 class="text-sm font-bold tracking-tight">SkyOps Navigation Pro V.00</h1>
+                    <p id="expiry-info" class="text-[10px] text-blue-400 uppercase tracking-tighter">Valid Until: --</p>
                 </div>
             </div>
-            
-            <!-- TOP NAV TABS -->
-            <nav class="flex space-x-1">
-                <button onclick="switchTab('map')" id="btn-tab-map" class="tab-btn px-4 py-2 rounded-lg flex items-center space-x-2 transition-all text-slate-600 hover:bg-slate-100">
-                    <i data-lucide="map" class="w-4 h-4"></i>
-                    <span class="text-sm font-semibold">Map</span>
+            <div class="flex items-center gap-4">
+                <div class="text-right hidden sm:block">
+                    <p id="welcome-user" class="text-xs font-semibold">Welcome, Captain</p>
+                    <p class="text-[10px] text-slate-400">System Ready</p>
+                </div>
+                <button onclick="logout()" class="p-2 hover:bg-red-500/20 rounded-full transition text-slate-400 hover:text-red-400">
+                    <i data-lucide="log-out" class="w-5 h-5"></i>
                 </button>
-                <button onclick="switchTab('route')" id="btn-tab-route" class="tab-btn px-4 py-2 rounded-lg flex items-center space-x-2 transition-all text-slate-600 hover:bg-slate-100">
-                    <i data-lucide="milestone" class="w-4 h-4"></i>
-                    <span class="text-sm font-semibold">Route</span>
-                </button>
-                <button onclick="switchTab('waypoint')" id="btn-tab-waypoint" class="tab-btn px-4 py-2 rounded-lg flex items-center space-x-2 transition-all text-slate-600 hover:bg-slate-100">
-                    <i data-lucide="database" class="w-4 h-4"></i>
-                    <span class="text-sm font-semibold">Waypoint Database</span>
-                </button>
-                <button onclick="handleLogout()" class="px-4 py-2 rounded-lg flex items-center space-x-2 text-red-500 hover:bg-red-50 transition-all">
-                    <i data-lucide="log-out" class="w-4 h-4"></i>
-                    <span class="text-sm font-semibold">Exit</span>
-                </button>
-            </nav>
+            </div>
         </header>
 
+        <!-- TOP NAVIGATION TABS -->
+        <nav class="glass border-t border-white/5 h-14 flex items-center justify-center gap-1 px-4 z-50">
+            <button onclick="switchTab('map')" id="tab-map" class="nav-tab active flex items-center gap-2 px-6 h-full transition duration-300">
+                <i data-lucide="map" class="w-4 h-4"></i>
+                <span class="text-xs font-medium uppercase tracking-wider">Map</span>
+            </button>
+            <button onclick="switchTab('route')" id="tab-route" class="nav-tab flex items-center gap-2 px-6 h-full transition duration-300">
+                <i data-lucide="milestone" class="w-4 h-4"></i>
+                <span class="text-xs font-medium uppercase tracking-wider">Route</span>
+            </button>
+            <button onclick="switchTab('waypoint')" id="tab-waypoint" class="nav-tab flex items-center gap-2 px-6 h-full transition duration-300">
+                <i data-lucide="database" class="w-4 h-4"></i>
+                <span class="text-xs font-medium uppercase tracking-wider">Database</span>
+            </button>
+            <button onclick="switchTab('aircraft')" id="tab-aircraft" class="nav-tab flex items-center gap-2 px-6 h-full transition duration-300">
+                <i data-lucide="plane" class="w-4 h-4"></i>
+                <span class="text-xs font-medium uppercase tracking-wider">Aircraft</span>
+            </button>
+            <button id="admin-tab-btn" onclick="switchTab('admin')" class="hidden flex items-center gap-2 px-6 h-full transition duration-300 text-orange-400 hover:bg-orange-400/10">
+                <i data-lucide="shield-check" class="w-4 h-4"></i>
+                <span class="text-xs font-medium uppercase tracking-wider">Admin</span>
+            </button>
+        </nav>
+
         <!-- CONTENT AREA -->
-        <main class="flex-1 relative overflow-hidden">
+        <main class="flex-grow relative">
             <!-- MAP TAB -->
-            <div id="tab-map" class="tab-content h-full relative">
+            <div id="content-map" class="tab-content h-full">
                 <div id="map"></div>
-                <!-- MAP CONTROLS -->
-                <div class="absolute top-4 right-4 z-[1000] flex flex-col space-y-2">
-                    <div class="bg-white p-2 rounded-xl shadow-xl flex flex-col space-y-1">
-                        <button onclick="setMapLayer('satellite')" class="p-2 hover:bg-slate-100 rounded-lg text-slate-600 tooltip" title="Satellite">
-                            <i data-lucide="globe" class="w-5 h-5"></i>
-                        </button>
-                        <button onclick="setMapLayer('street')" class="p-2 hover:bg-slate-100 rounded-lg text-slate-600" title="Street">
-                            <i data-lucide="map-pin" class="w-5 h-5"></i>
-                        </button>
-                        <button onclick="setMapLayer('terrain')" class="p-2 hover:bg-slate-100 rounded-lg text-slate-600" title="Terrain">
-                            <i data-lucide="mountain" class="w-5 h-5"></i>
-                        </button>
+                <!-- Map Controls Overlay -->
+                <div class="absolute top-4 right-4 z-[1000] flex flex-col gap-2">
+                    <div class="glass p-2 rounded-xl flex flex-col gap-2">
+                        <button onclick="setMapLayer('satellite')" class="p-2 hover:bg-blue-500 rounded-lg transition text-[10px] font-bold">SAT</button>
+                        <button onclick="setMapLayer('street')" class="p-2 hover:bg-blue-500 rounded-lg transition text-[10px] font-bold">STR</button>
+                        <button onclick="setMapLayer('terrain')" class="p-2 hover:bg-blue-500 rounded-lg transition text-[10px] font-bold">TER</button>
                     </div>
-                    <button onclick="locateMe()" class="bg-white p-3 rounded-xl shadow-xl text-blue-600 hover:bg-blue-50 transition-all flex items-center justify-center">
+                    <button onclick="locateUser()" class="glass p-3 rounded-full text-blue-400 hover:text-white hover:bg-blue-600 transition shadow-xl">
                         <i data-lucide="locate-fixed" class="w-6 h-6"></i>
                     </button>
                 </div>
             </div>
 
-            <!-- ROUTE TAB -->
-            <div id="tab-route" class="tab-content hidden h-full p-8 overflow-y-auto bg-slate-100">
-                <div class="max-w-4xl mx-auto bg-white p-8 rounded-3xl shadow-sm border border-slate-200">
-                    <h2 class="text-2xl font-bold mb-4 flex items-center"><i data-lucide="route" class="mr-2"></i> Route Planner</h2>
-                    <p class="text-slate-500 italic text-sm">Pilih waypoint dari database untuk membuat rute navigasi. (Fitur pengembangan selanjutnya).</p>
+            <!-- OTHER TABS (Placeholders) -->
+            <div id="content-route" class="tab-content hidden p-8 overflow-y-auto h-full">
+                <h2 class="text-2xl font-bold mb-4">Flight Planning</h2>
+                <div class="glass p-6 rounded-2xl border border-blue-500/20">
+                    <p class="text-slate-400 italic">Route planning module initialization...</p>
                 </div>
             </div>
 
-            <!-- WAYPOINT TAB -->
-            <div id="tab-waypoint" class="tab-content hidden h-full flex flex-col p-6 overflow-hidden bg-slate-50">
-                <div class="flex space-x-6 h-full">
-                    <div class="flex-1 flex flex-col bg-white rounded-3xl shadow-sm border border-slate-200 overflow-hidden">
-                        <div class="p-4 border-b flex items-center justify-between bg-slate-50">
-                            <div class="relative w-full max-w-sm">
-                                <i data-lucide="search" class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400"></i>
-                                <input type="text" id="wpSearch" oninput="filterWaypoints()" placeholder="Cari NavData (Contoh: CI...)" class="w-full pl-10 pr-4 py-2 rounded-xl border border-slate-200 focus:ring-2 focus:ring-blue-500 outline-none text-sm">
-                            </div>
-                            <div class="flex items-center space-x-2 ml-4">
-                                <button onclick="confirmDeleteAll()" class="bg-red-500 text-white px-4 py-2 rounded-xl text-xs font-bold flex items-center transition-all hover:bg-red-600 shadow-md shadow-red-500/20">
-                                    <i data-lucide="trash-2" class="w-3.5 h-3.5 mr-2"></i> Delete All
-                                </button>
-                                <button onclick="toggleModal('modalParse')" class="bg-slate-800 text-white px-4 py-2 rounded-xl text-xs font-bold flex items-center transition-all hover:bg-slate-700">
-                                    <i data-lucide="file-text" class="w-3.5 h-3.5 mr-2"></i> Parse Waypoint
-                                </button>
-                                <button onclick="toggleModal('modalAdd')" class="bg-blue-600 text-white px-4 py-2 rounded-xl text-xs font-bold flex items-center transition-all hover:bg-blue-700">
-                                    <i data-lucide="plus" class="w-3.5 h-3.5 mr-2"></i> Add Waypoint
-                                </button>
-                            </div>
-                        </div>
-                        <div class="flex-1 overflow-y-auto custom-scrollbar p-2">
-                            <table class="w-full text-left text-sm">
-                                <thead class="text-slate-500 font-medium uppercase text-[10px] sticky top-0 bg-white shadow-sm">
-                                    <tr>
-                                        <th class="px-4 py-3">Type</th>
-                                        <th class="px-4 py-3">Name</th>
-                                        <th class="px-4 py-3">Coordinates (DMS)</th>
-                                        <th class="px-4 py-3">Elevation</th>
-                                        <th class="px-4 py-3 text-right">Action</th>
-                                    </tr>
-                                </thead>
-                                <tbody id="waypointList">
-                                    <!-- Dynamic -->
-                                </tbody>
-                            </table>
+            <div id="content-waypoint" class="tab-content hidden p-8 overflow-y-auto h-full">
+                <h2 class="text-2xl font-bold mb-4">Waypoint Database</h2>
+                <div class="glass rounded-2xl overflow-hidden">
+                    <table class="w-full text-left">
+                        <thead class="bg-slate-800">
+                            <tr>
+                                <th class="p-4 text-xs font-bold uppercase text-slate-400">ID</th>
+                                <th class="p-4 text-xs font-bold uppercase text-slate-400">Name</th>
+                                <th class="p-4 text-xs font-bold uppercase text-slate-400">Coordinates</th>
+                            </tr>
+                        </thead>
+                        <tbody id="waypoint-list">
+                            <tr class="border-t border-slate-700">
+                                <td class="p-4 text-sm font-bold">W-JKT</td>
+                                <td class="p-4 text-sm">Jakarta Central Hub</td>
+                                <td class="p-4 text-sm text-blue-400">-6.2088, 106.8456</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div id="content-aircraft" class="tab-content hidden p-8 overflow-y-auto h-full">
+                <h2 class="text-2xl font-bold mb-4">Aircraft Profile</h2>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div class="glass p-6 rounded-2xl border border-white/5">
+                        <label class="text-xs text-slate-400 uppercase">Registration</label>
+                        <p class="text-xl font-bold mb-4">PK-SKY-01</p>
+                        <label class="text-xs text-slate-400 uppercase">Performance</label>
+                        <div class="grid grid-cols-2 gap-4 mt-2">
+                            <div class="bg-slate-800/50 p-3 rounded-lg"><span class="block text-[10px]">TAS</span> 140 KT</div>
+                            <div class="bg-slate-800/50 p-3 rounded-lg"><span class="block text-[10px]">BURN</span> 12 GPH</div>
                         </div>
                     </div>
                 </div>
             </div>
 
             <!-- ADMIN TAB -->
-            <div id="tab-admin" class="tab-content hidden h-full p-8 bg-slate-50 overflow-y-auto">
-                <div class="max-w-5xl mx-auto space-y-6">
-                    <div class="flex items-center justify-between">
-                        <h2 class="text-2xl font-bold text-slate-800 flex items-center"><i data-lucide="shield-check" class="mr-3 text-blue-600"></i> Admin Management Panel</h2>
-                        <button onclick="addNewUser()" class="bg-green-600 text-white px-6 py-2 rounded-xl text-sm font-bold flex items-center shadow-lg shadow-green-500/20 hover:bg-green-700 transition-all">
-                            <i data-lucide="user-plus" class="mr-2 w-4 h-4"></i> Tambah User Baru
-                        </button>
+            <div id="content-admin" class="tab-content hidden p-8 overflow-y-auto h-full">
+                <div class="flex justify-between items-center mb-6">
+                    <h2 class="text-2xl font-bold">User Management</h2>
+                    <div class="flex gap-2">
+                         <input type="text" id="gs-url" class="bg-slate-800 border border-slate-700 rounded-lg px-4 py-2 text-xs w-64" placeholder="Paste Google Sheet API URL">
+                         <button onclick="saveGSUrl()" class="bg-green-600 px-4 py-2 rounded-lg text-xs font-bold">SAVE API</button>
                     </div>
-                    
-                    <div class="bg-white rounded-3xl shadow-sm border border-slate-200 overflow-hidden">
-                        <table class="w-full text-left">
-                            <thead class="bg-slate-50 text-slate-500 text-xs uppercase font-bold">
-                                <tr>
-                                    <th class="px-6 py-4">Nama Lengkap</th>
-                                    <th class="px-6 py-4">Username</th>
-                                    <th class="px-6 py-4">Password</th>
-                                    <th class="px-6 py-4">Expired Until</th>
-                                    <th class="px-6 py-4 text-right">Actions</th>
-                                </tr>
-                            </thead>
-                            <tbody id="userTableBody">
-                                <!-- Dynamic -->
-                            </tbody>
-                        </table>
+                </div>
+                
+                <div class="glass rounded-2xl overflow-hidden mb-8">
+                    <div class="p-4 bg-slate-800/50 flex gap-4">
+                        <input id="new-name" type="text" placeholder="Name" class="flex-1 bg-slate-900 border border-slate-700 p-2 rounded text-sm">
+                        <input id="new-user" type="text" placeholder="Username" class="flex-1 bg-slate-900 border border-slate-700 p-2 rounded text-sm">
+                        <input id="new-pass" type="text" placeholder="Password" class="flex-1 bg-slate-900 border border-slate-700 p-2 rounded text-sm">
+                        <input id="new-exp" type="date" class="flex-1 bg-slate-900 border border-slate-700 p-2 rounded text-sm">
+                        <button onclick="addUser()" class="bg-blue-600 px-6 py-2 rounded text-sm font-bold">ADD USER</button>
                     </div>
+                    <table class="w-full text-left">
+                        <thead class="bg-slate-800/80">
+                            <tr>
+                                <th class="p-4 text-[10px] font-bold uppercase text-slate-400">Name</th>
+                                <th class="p-4 text-[10px] font-bold uppercase text-slate-400">Username</th>
+                                <th class="p-4 text-[10px] font-bold uppercase text-slate-400">Password</th>
+                                <th class="p-4 text-[10px] font-bold uppercase text-slate-400">Expired Until</th>
+                                <th class="p-4 text-[10px] font-bold uppercase text-slate-400">Action</th>
+                            </tr>
+                        </thead>
+                        <tbody id="user-table-body">
+                            <!-- Users will appear here -->
+                        </tbody>
+                    </table>
                 </div>
             </div>
         </main>
     </div>
 
-    <!-- MODAL ADD WAYPOINT -->
-    <div id="modalAdd" class="hidden fixed inset-0 z-[2000] bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4">
-        <div class="bg-white w-full max-w-lg rounded-3xl shadow-2xl overflow-hidden animate-in zoom-in duration-300">
-            <div class="p-6 border-b flex justify-between items-center">
-                <h3 class="text-lg font-bold">Add New Waypoint</h3>
-                <button onclick="toggleModal('modalAdd')" class="text-slate-400 hover:text-slate-600"><i data-lucide="x"></i></button>
-            </div>
-            <div class="p-6 space-y-4">
-                <div>
-                    <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Waypoint Name</label>
-                    <input type="text" id="wpName" class="w-full p-3 rounded-xl border border-slate-200 uppercase" placeholder="e.g. MONAS">
-                </div>
-                <div>
-                    <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Type Waypoint</label>
-                    <div class="grid grid-cols-3 gap-2">
-                        <label class="flex flex-col items-center p-3 border rounded-xl cursor-pointer hover:bg-slate-50 transition-all border-slate-200" onclick="selectWpType('VFR', this)">
-                            <div class="icon-vfr mb-2"></div>
-                            <span class="text-[10px] font-bold">VFR</span>
-                        </label>
-                        <label class="flex flex-col items-center p-3 border rounded-xl cursor-pointer hover:bg-slate-50 transition-all border-slate-200" onclick="selectWpType('AIRPORT', this)">
-                            <div class="icon-airport mb-2"><i data-lucide="plane" class="w-3 h-3 text-white"></i></div>
-                            <span class="text-[10px] font-bold">AIRPORT</span>
-                        </label>
-                        <label class="flex flex-col items-center p-3 border rounded-xl cursor-pointer hover:bg-slate-50 transition-all border-slate-200" onclick="selectWpType('HELIPORT', this)">
-                            <div class="icon-heliport mb-2">H</div>
-                            <span class="text-[10px] font-bold">HELIPORT</span>
-                        </label>
-                    </div>
-                    <input type="hidden" id="wpType" value="VFR">
-                </div>
-                <div class="space-y-2">
-                    <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Coordinates (DMS)</label>
-                    <div class="flex items-center space-x-1">
-                        <select id="latDir" class="p-2 border rounded-lg text-xs font-bold"><option>S</option><option>N</option></select>
-                        <input type="number" id="latD" placeholder="Deg" class="w-16 p-2 border rounded-lg text-xs">
-                        <input type="number" id="latM" placeholder="Min" class="w-16 p-2 border rounded-lg text-xs">
-                        <input type="number" id="latS" placeholder="Sec" class="w-16 p-2 border rounded-lg text-xs">
-                    </div>
-                    <div class="flex items-center space-x-1">
-                        <select id="lonDir" class="p-2 border rounded-lg text-xs font-bold"><option>E</option><option>W</option></select>
-                        <input type="number" id="lonD" placeholder="Deg" class="w-16 p-2 border rounded-lg text-xs">
-                        <input type="number" id="lonM" placeholder="Min" class="w-16 p-2 border rounded-lg text-xs">
-                        <input type="number" id="lonS" placeholder="Sec" class="w-16 p-2 border rounded-lg text-xs">
-                    </div>
-                </div>
-                <div>
-                    <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Elevation (ft)</label>
-                    <div class="flex space-x-2">
-                        <input type="number" id="wpElev" class="flex-1 p-3 rounded-xl border border-slate-200" placeholder="0">
-                        <button onclick="syncElevation()" class="bg-blue-100 text-blue-700 px-4 rounded-xl text-xs font-bold hover:bg-blue-200 transition-all flex items-center">
-                            <i data-lucide="refresh-cw" class="w-3.5 h-3.5 mr-2"></i> Sync
-                        </button>
-                    </div>
-                </div>
-                <button onclick="saveWaypoint()" class="w-full bg-blue-600 text-white py-4 rounded-2xl font-bold shadow-xl shadow-blue-500/30 hover:bg-blue-700 transition-all">Save Waypoint</button>
-            </div>
-        </div>
-    </div>
-
-    <!-- MODAL PARSE WAYPOINT -->
-    <div id="modalParse" class="hidden fixed inset-0 z-[2000] bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4">
-        <div class="bg-white w-full max-w-2xl rounded-3xl shadow-2xl overflow-hidden animate-in slide-in-from-bottom-10 duration-300">
-            <div class="p-6 border-b flex justify-between items-center">
-                <h3 class="text-lg font-bold">Bulk Parse Waypoint</h3>
-                <button onclick="toggleModal('modalParse')" class="text-slate-400 hover:text-slate-600"><i data-lucide="x"></i></button>
-            </div>
-            <div class="p-6 space-y-4">
-                <p class="text-[10px] text-slate-500 leading-relaxed bg-slate-50 p-3 rounded-xl border border-dashed border-slate-300">
-                    <span class="font-bold text-slate-700 uppercase">Format:</span> NAMA SXX XX'XX" EXXX XX'XX" TYPE<br>
-                    <span class="font-bold text-slate-700 uppercase">Contoh:</span> <code class="text-blue-600">RANDU S07 06'10" E109 19'31" VFR</code>
-                </p>
-                <textarea id="parseInput" class="w-full h-64 p-4 rounded-2xl border border-slate-200 font-mono text-sm outline-none focus:ring-2 focus:ring-blue-500 bg-slate-50" placeholder="Masukkan banyak waypoint di sini..."></textarea>
-                <div class="flex space-x-3">
-                    <button onclick="importParse()" class="flex-1 bg-slate-900 text-white py-4 rounded-2xl font-bold hover:bg-black transition-all shadow-lg">Start Import</button>
-                    <button onclick="toggleModal('modalParse')" class="px-8 bg-slate-100 text-slate-600 py-4 rounded-2xl font-bold hover:bg-slate-200 transition-all">Cancel</button>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- MODAL CONFIRMATION (CUSTOM MESSAGE BOX) -->
-    <div id="modalConfirm" class="hidden fixed inset-0 z-[3000] bg-slate-900/70 backdrop-blur-md flex items-center justify-center p-4">
-        <div class="bg-white w-full max-w-sm rounded-3xl shadow-2xl p-8 text-center animate-in zoom-in duration-200">
-            <div id="confirmIcon" class="w-16 h-16 bg-red-100 text-red-600 rounded-full flex items-center justify-center mx-auto mb-4">
-                <i data-lucide="alert-triangle" class="w-8 h-8"></i>
-            </div>
-            <h3 id="confirmTitle" class="text-xl font-bold text-slate-800 mb-2">Konfirmasi</h3>
-            <p id="confirmMessage" class="text-sm text-slate-500 mb-8">Apakah Anda yakin ingin melakukan tindakan ini?</p>
-            <div class="flex space-x-3">
-                <button id="confirmYes" class="flex-1 bg-red-600 text-white py-3 rounded-2xl font-bold hover:bg-red-700 transition-all shadow-lg shadow-red-500/20">Ya, Hapus</button>
-                <button onclick="closeConfirm()" class="flex-1 bg-slate-100 text-slate-600 py-3 rounded-2xl font-bold hover:bg-slate-200 transition-all">Batal</button>
-            </div>
-        </div>
-    </div>
-
-    <!-- SYNC NOTIFICATION -->
-    <div id="syncLoading" class="flex items-center space-x-3">
-        <div class="w-4 h-4 border-2 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
-        <span class="text-xs font-semibold text-slate-700">Menyinkronkan ke Google Sheet...</span>
-    </div>
-
-    <!-- HIDDEN CONFIG -->
-    <input type="hidden" id="gsUrl" value="https://script.google.com/macros/s/AKfycbzmEgyX_HIJYfkNHEUlVJKyVvEG3s0MPeYWxyfx69PEXgOAckw99x1aMh-cMakRN3OQuQ/exec">
-
     <script>
-        // --- KONFIGURASI & STATE ---
+        // --- INITIALIZATION ---
+        let map;
         let currentUser = null;
-        const DEFAULT_URL = document.getElementById('gsUrl').value;
-        let waypoints = JSON.parse(localStorage.getItem('skyops_waypoints')) || [];
+        let userLocationMarker = null;
+        let googleSheetUrl = localStorage.getItem('skyops_gs_url') || '';
+        
+        // Mock DB (Synchronized with localStorage for this demo if no GS)
         let users = JSON.parse(localStorage.getItem('skyops_users')) || [
-            { name: "Administrator", username: "admin", password: "ramdan28", expired: "2099-12-31", isAdmin: true }
+            { name: "System Admin", username: "admin", password: "ramdan28", expired: "2099-12-31", isAdmin: true }
         ];
 
-        let map, layers = {}, activeLayer = 'satellite', userMarker = null, waypointMarkers = [];
-
-        // --- INISIALISASI ---
         window.onload = () => {
             lucide.createIcons();
+            document.getElementById('gs-url').value = googleSheetUrl;
+            
+            // Splash sequence
             setTimeout(() => {
-                document.getElementById('splashScreen').classList.add('opacity-0');
+                const splash = document.getElementById('splash-screen');
+                splash.style.opacity = '0';
+                splash.style.transition = 'opacity 1s ease';
                 setTimeout(() => {
-                    document.getElementById('splashScreen').classList.add('hidden');
-                    document.getElementById('loginScreen').classList.remove('hidden');
+                    splash.classList.add('hidden');
+                    document.getElementById('login-page').classList.remove('hidden');
                 }, 1000);
-            }, 3000);
-
-            initMap();
-            renderWaypointList();
+            }, 2500);
         };
 
-        // --- CUSTOM CONFIRMATION LOGIC ---
-        function showConfirm(title, message, onYes, icon = 'alert-triangle', colorClass = 'bg-red-100 text-red-600') {
-            const modal = document.getElementById('modalConfirm');
-            const titleEl = document.getElementById('confirmTitle');
-            const messageEl = document.getElementById('confirmMessage');
-            const yesBtn = document.getElementById('confirmYes');
-            const iconBox = document.getElementById('confirmIcon');
-
-            titleEl.innerText = title;
-            messageEl.innerText = message;
-            iconBox.className = `w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4 ${colorClass}`;
-            
-            modal.classList.remove('hidden');
-
-            yesBtn.onclick = () => {
-                onYes();
-                closeConfirm();
-            };
-        }
-
-        function closeConfirm() {
-            document.getElementById('modalConfirm').classList.add('hidden');
-        }
-
-        // --- AUTH ---
+        // --- AUTHENTICATION ---
         function handleLogin() {
-            const user = document.getElementById('loginUser').value;
-            const pass = document.getElementById('loginPass').value;
-            const errorDiv = document.getElementById('loginError');
+            const userIn = document.getElementById('username').value;
+            const passIn = document.getElementById('password').value;
+            const errorEl = document.getElementById('login-error');
 
-            const found = users.find(u => u.username === user && u.password === pass);
+            const foundUser = users.find(u => u.username === userIn && u.password === passIn);
 
-            if (found) {
+            if (foundUser) {
+                const expiryDate = new Date(foundUser.expired);
                 const today = new Date();
-                const expDate = new Date(found.expired);
 
-                if (today > expDate) {
-                    errorDiv.innerText = "Akun Anda telah kadaluarsa!";
+                if (today > expiryDate && !foundUser.isAdmin) {
+                    errorEl.textContent = "Your account has expired.";
+                    errorEl.classList.remove('hidden');
                     return;
                 }
 
-                currentUser = found;
-                document.getElementById('loginScreen').classList.add('hidden');
-                document.getElementById('mainDashboard').classList.remove('hidden');
+                currentUser = foundUser;
+                document.getElementById('login-page').classList.add('hidden');
+                document.getElementById('app-container').classList.remove('hidden');
                 
-                document.getElementById('expiryInfo').innerText = `Valid Until: ${found.expired}`;
-                
-                if (found.isAdmin) {
-                    showAdminTabBtn(true);
-                    switchTab('admin');
-                } else {
-                    showAdminTabBtn(false);
-                    switchTab('map');
-                }
-                
-                setTimeout(() => { map.invalidateSize(); }, 200);
+                initApp();
             } else {
-                errorDiv.innerText = "Username atau Password salah!";
+                errorEl.textContent = "Invalid username or password.";
+                errorEl.classList.remove('hidden');
             }
         }
 
-        function handleLogout() {
-            currentUser = null;
-            document.getElementById('mainDashboard').classList.add('hidden');
-            document.getElementById('loginScreen').classList.remove('hidden');
-            document.getElementById('loginUser').value = "";
-            document.getElementById('loginPass').value = "";
-        }
-
-        // --- NAVIGASI ---
-        function switchTab(tabId) {
-            document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
-            document.getElementById(`tab-${tabId}`).classList.remove('hidden');
+        function initApp() {
+            document.getElementById('welcome-user').textContent = `Welcome, Captain ${currentUser.name.split(' ')[0]}`;
+            document.getElementById('expiry-info').textContent = `Valid Until: ${currentUser.expired}`;
             
-            document.querySelectorAll('.tab-btn').forEach(btn => {
-                btn.classList.remove('bg-blue-600', 'text-white', 'shadow-lg', 'shadow-blue-500/20');
-                btn.classList.add('text-slate-600');
-            });
-
-            const activeBtn = document.getElementById(`btn-tab-${tabId}`);
-            if (activeBtn) {
-                activeBtn.classList.remove('text-slate-600');
-                activeBtn.classList.add('bg-blue-600', 'text-white', 'shadow-lg', 'shadow-blue-500/20');
+            if (currentUser.isAdmin) {
+                document.getElementById('admin-tab-btn').classList.remove('hidden');
             }
 
-            if (tabId === 'map') setTimeout(() => { map.invalidateSize(); }, 100);
-            if (tabId === 'admin') renderAdminUsers();
-            lucide.createIcons();
-        }
-
-        function showAdminTabBtn(show) {
-            let adminBtn = document.getElementById('btn-tab-admin');
-            if (!adminBtn && show) {
-                const nav = document.querySelector('nav');
-                const btn = document.createElement('button');
-                btn.id = 'btn-tab-admin';
-                btn.onclick = () => switchTab('admin');
-                btn.className = "tab-btn px-4 py-2 rounded-lg flex items-center space-x-2 transition-all text-slate-600 hover:bg-slate-100";
-                btn.innerHTML = `<i data-lucide="shield" class="w-4 h-4"></i><span class="text-sm font-semibold">Admin</span>`;
-                nav.insertBefore(btn, nav.lastElementChild);
-                lucide.createIcons();
+            // Initialize Map
+            if (!map) {
+                initMap();
             }
+            
+            refreshUserTable();
         }
 
-        // --- PETA ---
+        function logout() {
+            location.reload();
+        }
+
+        // --- MAP LOGIC ---
+        const layers = {
+            satellite: L.tileLayer('https://{s}.google.com/vt/lyrs=s,h&x={x}&y={y}&z={z}', {
+                maxZoom: 20, subdomains: ['mt0', 'mt1', 'mt2', 'mt3']
+            }),
+            street: L.tileLayer('https://{s}.google.com/vt/lyrs=m&x={x}&y={y}&z={z}', {
+                maxZoom: 20, subdomains: ['mt0', 'mt1', 'mt2', 'mt3']
+            }),
+            terrain: L.tileLayer('https://{s}.google.com/vt/lyrs=p&x={x}&y={y}&z={z}', {
+                maxZoom: 20, subdomains: ['mt0', 'mt1', 'mt2', 'mt3']
+            })
+        };
+
         function initMap() {
-            map = L.map('map', { zoomControl: false }).setView([-6.2088, 106.8456], 13);
-            
-            layers.satellite = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
-                attribution: 'Esri, Maxar'
-            });
-            
-            layers.street = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{y}/{x}.png', {
-                attribution: '&copy; OpenStreetMap contributors'
+            map = L.map('map', {
+                center: [-6.2088, 106.8456],
+                zoom: 10,
+                layers: [layers.satellite],
+                zoomControl: false
             });
 
-            layers.terrain = L.tileLayer('https://stamen-tiles-{s}.a.ssl.fastly.net/terrain/{z}/{y}/{x}.jpg', {
-                attribution: 'Stamen'
-            });
-
-            layers.satellite.addTo(map);
-            updateMapWaypoints();
+            // Re-render when switching tabs (Leaflet fix)
+            setTimeout(() => map.invalidateSize(), 100);
         }
 
         function setMapLayer(type) {
             Object.values(layers).forEach(l => map.removeLayer(l));
             layers[type].addTo(map);
-            activeLayer = type;
         }
 
-        function locateMe() {
-            if (!navigator.geolocation) return;
-            
+        function locateUser() {
+            if (!navigator.geolocation) {
+                alert("Geolocation is not supported by your browser");
+                return;
+            }
+
             navigator.geolocation.getCurrentPosition((pos) => {
                 const { latitude, longitude } = pos.coords;
-                map.setView([latitude, longitude], 15);
-                
-                if (userMarker) map.removeLayer(userMarker);
-                
-                const pulseIcon = L.divIcon({
-                    className: '',
-                    html: '<div class="pulse-marker"></div>',
-                    iconSize: [20, 20],
-                    iconAnchor: [10, 10]
+                map.flyTo([latitude, longitude], 13);
+
+                if (userLocationMarker) map.removeLayer(userLocationMarker);
+
+                const icon = L.divIcon({
+                    className: 'custom-div-icon',
+                    html: `<div class="pulse-blue"></div>`,
+                    iconSize: [15, 15],
+                    iconAnchor: [7, 7]
                 });
-                
-                userMarker = L.marker([latitude, longitude], { icon: pulseIcon }).addTo(map);
-            }, null, { enableHighAccuracy: true });
+
+                userLocationMarker = L.marker([latitude, longitude], { icon }).addTo(map);
+            }, () => {
+                alert("Unable to retrieve your location");
+            });
         }
 
-        // --- WAYPOINT ---
-        function toggleModal(id) {
-            document.getElementById(id).classList.toggle('hidden');
-        }
-
-        function selectWpType(type, el) {
-            document.getElementById('wpType').value = type;
-            el.parentElement.querySelectorAll('label').forEach(l => l.classList.remove('border-blue-500', 'bg-blue-50'));
-            el.classList.add('border-blue-500', 'bg-blue-50');
-        }
-
-        function dmsToDec(d, m, s, dir) {
-            let res = parseFloat(d || 0) + parseFloat(m || 0)/60 + parseFloat(s || 0)/3600;
-            return (dir === 'S' || dir === 'W') ? res * -1 : res;
-        }
-
-        function decToDms(dec, isLat) {
-            const dir = isLat ? (dec < 0 ? 'S' : 'N') : (dec < 0 ? 'W' : 'E');
-            const absolute = Math.abs(dec);
-            const d = Math.floor(absolute);
-            const m = Math.floor((absolute - d) * 60);
-            const s = Math.round((absolute - d - m/60) * 3600);
-            return `${dir}${String(d).padStart(2, '0')} ${String(m).padStart(2, '0')}' ${String(s).padStart(2, '0')}"`;
-        }
-
-        async function syncElevation() {
-            const lat = dmsToDec(document.getElementById('latD').value, document.getElementById('latM').value, document.getElementById('latS').value, document.getElementById('latDir').value);
-            const lon = dmsToDec(document.getElementById('lonD').value, document.getElementById('lonM').value, document.getElementById('lonS').value, document.getElementById('lonDir').value);
-
-            try {
-                const res = await fetch(`https://api.open-elevation.com/api/v1/lookup?locations=${lat},${lon}`);
-                const data = await res.json();
-                const elevMeters = data.results[0].elevation;
-                document.getElementById('wpElev').value = Math.round(elevMeters * 3.28084);
-            } catch (e) {
-                console.error("Elevation sync failed");
-            }
-        }
-
-        function saveWaypoint() {
-            const name = document.getElementById('wpName').value;
-            const type = document.getElementById('wpType').value;
-            const elev = document.getElementById('wpElev').value;
-
-            const lat = dmsToDec(document.getElementById('latD').value, document.getElementById('latM').value, document.getElementById('latS').value, document.getElementById('latDir').value);
-            const lon = dmsToDec(document.getElementById('lonD').value, document.getElementById('lonM').value, document.getElementById('lonS').value, document.getElementById('lonDir').value);
-
-            const newWp = { 
-                id: Date.now(), 
-                name: name.toUpperCase(), 
-                type, lat, lon, elev: elev || 0,
-                dms: `${decToDms(lat, true)} ${decToDms(lon, false)}`
-            };
-
-            waypoints.push(newWp);
-            saveToStorage();
-            renderWaypointList();
-            updateMapWaypoints();
-            toggleModal('modalAdd');
-        }
-
-        function renderWaypointList(filter = "") {
-            const list = document.getElementById('waypointList');
-            list.innerHTML = "";
+        // --- NAVIGATION ---
+        function switchTab(tabId) {
+            document.querySelectorAll('.tab-content').forEach(c => c.classList.add('hidden'));
+            document.querySelectorAll('.nav-tab, #admin-tab-btn').forEach(t => t.classList.remove('active'));
             
-            const filtered = waypoints.filter(wp => wp.name.toLowerCase().startsWith(filter.toLowerCase()));
-
-            filtered.forEach(wp => {
-                let iconHtml = '';
-                if(wp.type === 'VFR') iconHtml = '<div class="icon-vfr"></div>';
-                else if(wp.type === 'AIRPORT') iconHtml = '<div class="icon-airport"><i data-lucide="plane" class="w-2.5 h-2.5"></i></div>';
-                else iconHtml = '<div class="icon-heliport">H</div>';
-
-                const tr = document.createElement('tr');
-                tr.className = "border-b hover:bg-slate-50 transition-all group";
-                tr.innerHTML = `
-                    <td class="px-4 py-3">${iconHtml}</td>
-                    <td class="px-4 py-3 font-bold text-slate-700">${wp.name}</td>
-                    <td class="px-4 py-3 text-slate-500 font-mono text-xs">${wp.dms}</td>
-                    <td class="px-4 py-3 text-slate-600">${wp.elev} ft</td>
-                    <td class="px-4 py-3 text-right opacity-0 group-hover:opacity-100 transition-opacity">
-                        <button onclick="deleteWp(${wp.id})" class="text-red-400 hover:text-red-600 p-2"><i data-lucide="trash-2" class="w-4 h-4"></i></button>
-                    </td>
-                `;
-                list.appendChild(tr);
-            });
-            lucide.createIcons();
-        }
-
-        function filterWaypoints() {
-            renderWaypointList(document.getElementById('wpSearch').value);
-        }
-
-        function deleteWp(id) {
-            showConfirm(
-                "Hapus Waypoint", 
-                "Apakah Anda yakin ingin menghapus waypoint ini secara permanen?", 
-                () => {
-                    waypoints = waypoints.filter(wp => wp.id !== id);
-                    saveToStorage();
-                    renderWaypointList();
-                    updateMapWaypoints();
-                }
-            );
-        }
-
-        // --- NEW: DELETE ALL WAYPOINTS ---
-        function confirmDeleteAll() {
-            if (waypoints.length === 0) return;
-            showConfirm(
-                "Hapus Semua Waypoint", 
-                `Anda akan menghapus seluruh data (${waypoints.length}) waypoint. Tindakan ini tidak dapat dibatalkan!`, 
-                () => {
-                    waypoints = [];
-                    saveToStorage();
-                    renderWaypointList();
-                    updateMapWaypoints();
-                }
-            );
-        }
-
-        function updateMapWaypoints() {
-            waypointMarkers.forEach(m => map.removeLayer(m));
-            waypointMarkers = [];
-
-            waypoints.forEach(wp => {
-                let markerIcon;
-                if(wp.type === 'VFR') {
-                    markerIcon = L.divIcon({ className: '', html: '<div class="icon-vfr"></div>', iconSize: [12, 12], iconAnchor: [6,6] });
-                } else if(wp.type === 'AIRPORT') {
-                    markerIcon = L.divIcon({ className: '', html: '<div class="icon-airport"><i data-lucide="plane" class="w-3 h-3 text-white"></i></div>', iconSize: [20, 20], iconAnchor: [10,10] });
-                } else {
-                    markerIcon = L.divIcon({ className: '', html: '<div class="icon-heliport">H</div>', iconSize: [20, 20], iconAnchor: [10,10] });
-                }
-
-                const m = L.marker([wp.lat, wp.lon], { icon: markerIcon })
-                    .bindTooltip(wp.name, { permanent: true, direction: 'bottom', className: 'waypoint-label', offset: [0, 10] })
-                    .addTo(map);
-                
-                waypointMarkers.push(m);
-            });
-            lucide.createIcons();
-        }
-
-        // --- BULK PARSE ---
-        function importParse() {
-            const raw = document.getElementById('parseInput').value;
-            const lines = raw.split('\n');
-            let count = 0;
-
-            lines.forEach(line => {
-                if (!line.trim()) return;
-                const parts = line.trim().split(/\s+/);
-                
-                if (parts.length >= 6) {
-                    try {
-                        let name = parts[0];
-                        const latIdx = parts.findIndex(p => /^[NS]/i.test(p));
-                        const lonIdx = parts.findIndex(p => /^[EW]/i.test(p));
-                        
-                        if (latIdx !== -1 && lonIdx !== -1) {
-                            const latDir = parts[latIdx].charAt(0).toUpperCase();
-                            const latD = parts[latIdx].substring(1);
-                            let latMS = parts.slice(latIdx + 1, lonIdx).join(" ");
-                            let [latM, latS] = latMS.split(/['’"”\s]+/).filter(x => x);
-
-                            const lonDir = parts[lonIdx].charAt(0).toUpperCase();
-                            const lonD = parts[lonIdx].substring(1);
-                            let lonMS = parts.slice(lonIdx + 1, parts.length - 1).join(" ");
-                            let [lonM, lonS] = lonMS.split(/['’"”\s]+/).filter(x => x);
-                            
-                            let type = parts[parts.length - 1].toUpperCase();
-
-                            const lat = dmsToDec(latD, latM, latS, latDir);
-                            const lon = dmsToDec(lonD, lonM, lonS, lonDir);
-
-                            waypoints.push({
-                                id: Date.now() + Math.random(),
-                                name: name.toUpperCase(),
-                                type: type,
-                                lat, lon, elev: 0,
-                                dms: `${decToDms(lat, true)} ${decToDms(lon, false)}`
-                            });
-                            count++;
-                        }
-                    } catch (e) { }
-                }
-            });
-
-            if (count > 0) {
-                saveToStorage();
-                renderWaypointList();
-                updateMapWaypoints();
-                toggleModal('modalParse');
-                document.getElementById('parseInput').value = "";
-            }
-        }
-
-        // --- ADMIN ---
-        function renderAdminUsers() {
-            const tbody = document.getElementById('userTableBody');
-            tbody.innerHTML = "";
-
-            users.forEach((u, idx) => {
-                const tr = document.createElement('tr');
-                tr.className = "border-b hover:bg-slate-50";
-                tr.innerHTML = `
-                    <td class="px-6 py-4 font-medium text-slate-800">${u.name}</td>
-                    <td class="px-6 py-4 text-slate-600">${u.username}</td>
-                    <td class="px-6 py-4">
-                        <input type="text" onchange="updateUser(${idx}, 'password', this.value)" value="${u.password}" class="bg-slate-100 px-2 py-1 rounded border-none text-xs focus:ring-1 focus:ring-blue-500">
-                    </td>
-                    <td class="px-6 py-4">
-                        <input type="date" onchange="updateUser(${idx}, 'expired', this.value)" value="${u.expired}" class="bg-slate-100 px-2 py-1 rounded border-none text-xs focus:ring-1 focus:ring-blue-500">
-                    </td>
-                    <td class="px-6 py-4 text-right">
-                        ${!u.isAdmin ? `<button onclick="deleteUser(${idx})" class="text-red-400 hover:text-red-600 p-2 rounded-lg"><i data-lucide="trash-2" class="w-4 h-4"></i></button>` : '<span class="text-[10px] text-slate-300 font-bold uppercase tracking-widest">Master</span>'}
-                    </td>
-                `;
-                tbody.appendChild(tr);
-            });
-            lucide.createIcons();
-        }
-
-        function addNewUser() {
-            const name = prompt("Nama Lengkap:");
-            const user = prompt("Username:");
-            const pass = prompt("Password:");
-            const exp = prompt("Expired Date (YYYY-MM-DD):", "2025-12-31");
+            document.getElementById(`content-${tabId}`).classList.remove('hidden');
             
-            if (name && user && pass) {
-                users.push({ name, username: user, password: pass, expired: exp, isAdmin: false });
-                saveToStorage();
-                renderAdminUsers();
+            const activeTab = document.getElementById(`tab-${tabId}`) || document.getElementById('admin-tab-btn');
+            activeTab.classList.add('active');
+
+            if (tabId === 'map') {
+                setTimeout(() => map.invalidateSize(), 200);
             }
         }
 
-        function updateUser(idx, key, val) {
-            users[idx][key] = val;
-            saveToStorage();
+        // --- ADMIN & DATABASE LOGIC ---
+        function saveGSUrl() {
+            googleSheetUrl = document.getElementById('gs-url').value;
+            localStorage.setItem('skyops_gs_url', googleSheetUrl);
+            alert("Google Sheet API URL Saved!");
         }
 
-        function deleteUser(idx) {
-            showConfirm(
-                "Hapus User", 
-                "Apakah Anda yakin ingin menghapus akses pengguna ini?", 
-                () => {
-                    users.splice(idx, 1);
-                    saveToStorage();
-                    renderAdminUsers();
-                }
-            );
-        }
+        function addUser() {
+            const name = document.getElementById('new-name').value;
+            const user = document.getElementById('new-user').value;
+            const pass = document.getElementById('new-pass').value;
+            const exp = document.getElementById('new-exp').value;
 
-        // --- DATABASE & SYNC ---
-        function saveToStorage() {
-            localStorage.setItem('skyops_waypoints', JSON.stringify(waypoints));
+            if (!name || !user || !pass || !exp) return alert("Fill all fields");
+
+            users.push({ name, username: user, password: pass, expired: exp, isAdmin: false });
             localStorage.setItem('skyops_users', JSON.stringify(users));
-            syncWithGoogleSheet();
+            
+            // Reset fields
+            document.getElementById('new-name').value = '';
+            document.getElementById('new-user').value = '';
+            document.getElementById('new-pass').value = '';
+            document.getElementById('new-exp').value = '';
+            
+            refreshUserTable();
+            syncToGoogleSheet();
         }
 
-        function syncWithGoogleSheet() {
-            const url = DEFAULT_URL;
-            if (!url) return;
+        function deleteUser(index) {
+            if (users[index].username === 'admin') return;
+            users.splice(index, 1);
+            localStorage.setItem('skyops_users', JSON.stringify(users));
+            refreshUserTable();
+            syncToGoogleSheet();
+        }
 
-            const loader = document.getElementById('syncLoading');
-            loader.style.display = 'flex';
-
-            fetch(url, {
-                method: 'POST',
-                mode: 'no-cors',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    timestamp: new Date().toISOString(),
-                    waypoints: waypoints,
-                    users: users
-                })
-            }).then(() => {
-                setTimeout(() => { loader.style.display = 'none'; }, 1000);
-            }).catch(err => {
-                loader.style.display = 'none';
+        function refreshUserTable() {
+            const tbody = document.getElementById('user-table-body');
+            tbody.innerHTML = '';
+            users.forEach((u, i) => {
+                const row = `
+                    <tr class="border-t border-slate-700/50 hover:bg-white/5 transition">
+                        <td class="p-4 text-sm font-medium">${u.name}</td>
+                        <td class="p-4 text-sm text-slate-400">${u.username}</td>
+                        <td class="p-4 text-sm font-mono text-blue-400">${u.password}</td>
+                        <td class="p-4 text-sm ${new Date(u.expired) < new Date() ? 'text-red-500' : 'text-green-400'}">${u.expired}</td>
+                        <td class="p-4">
+                            ${u.isAdmin ? '<span class="text-[10px] bg-blue-500/20 text-blue-400 px-2 py-1 rounded">SYSTEM</span>' : 
+                            `<button onclick="deleteUser(${i})" class="text-red-400 hover:text-red-600 p-1"><i data-lucide="trash-2" class="w-4 h-4"></i></button>`}
+                        </td>
+                    </tr>
+                `;
+                tbody.innerHTML += row;
             });
+            lucide.createIcons();
+        }
+
+        // Placeholder for Google Sheets Sync
+        async function syncToGoogleSheet() {
+            if (!googleSheetUrl) return;
+            // logic to send POST request to Google Apps Script
+            try {
+                await fetch(googleSheetUrl, {
+                    method: 'POST',
+                    mode: 'no-cors',
+                    body: JSON.stringify(users)
+                });
+            } catch (e) { console.error("Sync failed", e); }
         }
 
     </script>
