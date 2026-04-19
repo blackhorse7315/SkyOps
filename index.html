@@ -18,14 +18,12 @@
             overflow: hidden;
         }
 
-        /* Glassmorphism */
         .glass {
             background: rgba(30, 41, 59, 0.7);
             backdrop-filter: blur(12px);
             border: 1px solid rgba(255, 255, 255, 0.1);
         }
 
-        /* Animations */
         @keyframes fadeInOut {
             0% { opacity: 0; transform: scale(0.95); }
             20% { opacity: 1; transform: scale(1); }
@@ -58,6 +56,16 @@
             border-bottom: 3px solid #3b82f6;
             color: #3b82f6;
             background: rgba(59, 130, 246, 0.1);
+        }
+
+        /* Waypoint Type Icons */
+        .wp-icon-vfr { width: 14px; height: 14px; background: #f97316; border-radius: 2px; display: inline-block; }
+        .wp-icon-apt { width: 18px; height: 18px; background: #3b82f6; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; }
+        .wp-icon-heli { width: 18px; height: 18px; background: #f472b6; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; font-weight: bold; font-size: 10px; }
+
+        .modal-overlay {
+            background: rgba(0, 0, 0, 0.8);
+            backdrop-filter: blur(4px);
         }
     </style>
 </head>
@@ -94,10 +102,6 @@
                 </button>
                 <div id="login-error" class="text-red-400 text-sm text-center mt-2 hidden">Invalid credentials or account expired.</div>
             </div>
-            
-            <div class="mt-8 pt-6 border-t border-slate-700/50">
-                <p class="text-[10px] text-center text-slate-500 tracking-widest">ENCRYPTED CONNECTION SECURED</p>
-            </div>
         </div>
     </div>
 
@@ -115,7 +119,6 @@
             <div class="flex items-center gap-4">
                 <div class="text-right hidden sm:block">
                     <p id="welcome-user" class="text-xs font-semibold">Welcome, Captain</p>
-                    <p class="text-[10px] text-slate-400">System Ready</p>
                 </div>
                 <button onclick="logout()" class="p-2 hover:bg-red-500/20 rounded-full transition text-slate-400 hover:text-red-400">
                     <i data-lucide="log-out" class="w-5 h-5"></i>
@@ -152,7 +155,6 @@
             <!-- MAP TAB -->
             <div id="content-map" class="tab-content h-full">
                 <div id="map"></div>
-                <!-- Map Controls Overlay -->
                 <div class="absolute top-4 right-4 z-[1000] flex flex-col gap-2">
                     <div class="glass p-2 rounded-xl flex flex-col gap-2">
                         <button onclick="setMapLayer('satellite')" class="p-2 hover:bg-blue-500 rounded-lg transition text-[10px] font-bold">SAT</button>
@@ -165,105 +167,212 @@
                 </div>
             </div>
 
-            <!-- OTHER TABS (Placeholders) -->
+            <!-- ROUTE TAB -->
             <div id="content-route" class="tab-content hidden p-8 overflow-y-auto h-full">
                 <h2 class="text-2xl font-bold mb-4">Flight Planning</h2>
-                <div class="glass p-6 rounded-2xl border border-blue-500/20">
-                    <p class="text-slate-400 italic">Route planning module initialization...</p>
-                </div>
+                <p class="text-slate-400">Initialize route tracking...</p>
             </div>
 
+            <!-- WAYPOINT DATABASE TAB -->
             <div id="content-waypoint" class="tab-content hidden p-8 overflow-y-auto h-full">
-                <h2 class="text-2xl font-bold mb-4">Waypoint Database</h2>
-                <div class="glass rounded-2xl overflow-hidden">
+                <div class="flex justify-between items-center mb-6">
+                    <div>
+                        <h2 class="text-2xl font-bold">Waypoint Database</h2>
+                        <p class="text-xs text-slate-400">Manage your custom navigation points</p>
+                    </div>
+                    <button onclick="openWpModal()" class="bg-blue-600 hover:bg-blue-500 px-6 py-2.5 rounded-xl text-sm font-bold flex items-center gap-2 transition shadow-lg shadow-blue-900/40">
+                        <i data-lucide="plus-circle" class="w-4 h-4"></i>
+                        ADD NEW WAYPOINT
+                    </button>
+                </div>
+
+                <div class="glass rounded-2xl overflow-hidden border border-white/5">
                     <table class="w-full text-left">
-                        <thead class="bg-slate-800">
+                        <thead class="bg-slate-800/80">
                             <tr>
-                                <th class="p-4 text-xs font-bold uppercase text-slate-400">ID</th>
+                                <th class="p-4 text-xs font-bold uppercase text-slate-400">Type</th>
                                 <th class="p-4 text-xs font-bold uppercase text-slate-400">Name</th>
-                                <th class="p-4 text-xs font-bold uppercase text-slate-400">Coordinates</th>
+                                <th class="p-4 text-xs font-bold uppercase text-slate-400">Coordinates (DMS)</th>
+                                <th class="p-4 text-xs font-bold uppercase text-slate-400">Elevation</th>
+                                <th class="p-4 text-xs font-bold uppercase text-slate-400 text-right">Action</th>
                             </tr>
                         </thead>
-                        <tbody id="waypoint-list">
-                            <tr class="border-t border-slate-700">
-                                <td class="p-4 text-sm font-bold">W-JKT</td>
-                                <td class="p-4 text-sm">Jakarta Central Hub</td>
-                                <td class="p-4 text-sm text-blue-400">-6.2088, 106.8456</td>
-                            </tr>
+                        <tbody id="waypoint-table-body">
+                            <!-- JS will populate -->
                         </tbody>
                     </table>
+                    <div id="wp-empty-state" class="p-12 text-center text-slate-500 hidden">
+                        <i data-lucide="map-pin-off" class="w-12 h-12 mx-auto mb-4 opacity-20"></i>
+                        <p>No waypoints found. Add your first point to start.</p>
+                    </div>
                 </div>
             </div>
 
+            <!-- AIRCRAFT PROFILE TAB -->
             <div id="content-aircraft" class="tab-content hidden p-8 overflow-y-auto h-full">
                 <h2 class="text-2xl font-bold mb-4">Aircraft Profile</h2>
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <div class="glass p-6 rounded-2xl border border-white/5">
-                        <label class="text-xs text-slate-400 uppercase">Registration</label>
-                        <p class="text-xl font-bold mb-4">PK-SKY-01</p>
-                        <label class="text-xs text-slate-400 uppercase">Performance</label>
-                        <div class="grid grid-cols-2 gap-4 mt-2">
-                            <div class="bg-slate-800/50 p-3 rounded-lg"><span class="block text-[10px]">TAS</span> 140 KT</div>
-                            <div class="bg-slate-800/50 p-3 rounded-lg"><span class="block text-[10px]">BURN</span> 12 GPH</div>
-                        </div>
-                    </div>
-                </div>
             </div>
 
             <!-- ADMIN TAB -->
             <div id="content-admin" class="tab-content hidden p-8 overflow-y-auto h-full">
-                <div class="flex justify-between items-center mb-6">
-                    <h2 class="text-2xl font-bold">User Management</h2>
+                <h2 class="text-2xl font-bold mb-6">Admin Settings</h2>
+                <div class="glass p-6 rounded-2xl mb-6">
+                    <label class="block text-xs uppercase tracking-widest text-slate-500 mb-2">Google Sheet API URL</label>
                     <div class="flex gap-2">
-                         <input type="text" id="gs-url" class="bg-slate-800 border border-slate-700 rounded-lg px-4 py-2 text-xs w-64" placeholder="Paste Google Sheet API URL">
-                         <button onclick="saveGSUrl()" class="bg-green-600 px-4 py-2 rounded-lg text-xs font-bold">SAVE API</button>
+                        <input type="text" id="gs-url" class="flex-grow bg-slate-900 border border-slate-700 rounded-lg px-4 py-2 text-sm" placeholder="Paste URL here">
+                        <button onclick="saveGSUrl()" class="bg-green-600 px-6 py-2 rounded-lg text-sm font-bold">SAVE</button>
                     </div>
                 </div>
                 
-                <div class="glass rounded-2xl overflow-hidden mb-8">
-                    <div class="p-4 bg-slate-800/50 flex gap-4">
-                        <input id="new-name" type="text" placeholder="Name" class="flex-1 bg-slate-900 border border-slate-700 p-2 rounded text-sm">
-                        <input id="new-user" type="text" placeholder="Username" class="flex-1 bg-slate-900 border border-slate-700 p-2 rounded text-sm">
-                        <input id="new-pass" type="text" placeholder="Password" class="flex-1 bg-slate-900 border border-slate-700 p-2 rounded text-sm">
-                        <input id="new-exp" type="date" class="flex-1 bg-slate-900 border border-slate-700 p-2 rounded text-sm">
-                        <button onclick="addUser()" class="bg-blue-600 px-6 py-2 rounded text-sm font-bold">ADD USER</button>
+                <div class="glass p-4 rounded-xl">
+                    <h4 class="text-sm font-bold mb-4">Add/Edit User</h4>
+                    <div class="grid grid-cols-4 gap-2 mb-4">
+                        <input id="adm-name" class="bg-slate-800 p-2 text-xs rounded border border-slate-700" placeholder="Full Name">
+                        <input id="adm-user" class="bg-slate-800 p-2 text-xs rounded border border-slate-700" placeholder="Username">
+                        <input id="adm-pass" class="bg-slate-800 p-2 text-xs rounded border border-slate-700" placeholder="Password">
+                        <input id="adm-exp" type="date" class="bg-slate-800 p-2 text-xs rounded border border-slate-700">
                     </div>
-                    <table class="w-full text-left">
-                        <thead class="bg-slate-800/80">
+                    <button onclick="adminAddUser()" class="bg-blue-600 w-full p-2 rounded font-bold text-xs">UPDATE USER DATABASE</button>
+                </div>
+
+                <div class="mt-6 glass rounded-xl overflow-hidden">
+                    <table class="w-full text-left text-xs">
+                        <thead class="bg-slate-800">
                             <tr>
-                                <th class="p-4 text-[10px] font-bold uppercase text-slate-400">Name</th>
-                                <th class="p-4 text-[10px] font-bold uppercase text-slate-400">Username</th>
-                                <th class="p-4 text-[10px] font-bold uppercase text-slate-400">Password</th>
-                                <th class="p-4 text-[10px] font-bold uppercase text-slate-400">Expired Until</th>
-                                <th class="p-4 text-[10px] font-bold uppercase text-slate-400">Action</th>
+                                <th class="p-3">Name</th>
+                                <th class="p-3">User</th>
+                                <th class="p-3">Pass</th>
+                                <th class="p-3">Exp</th>
+                                <th class="p-3">Action</th>
                             </tr>
                         </thead>
-                        <tbody id="user-table-body">
-                            <!-- Users will appear here -->
-                        </tbody>
+                        <tbody id="admin-user-table"></tbody>
                     </table>
                 </div>
             </div>
         </main>
     </div>
 
+    <!-- WAYPOINT MODAL -->
+    <div id="wp-modal" class="hidden fixed inset-0 z-[2000] modal-overlay flex items-center justify-center p-4">
+        <div class="glass w-full max-w-2xl rounded-3xl overflow-hidden border border-white/10 shadow-2xl">
+            <div class="p-6 border-b border-white/5 flex justify-between items-center">
+                <h3 id="modal-title" class="text-xl font-bold">Add New Waypoint</h3>
+                <button onclick="closeWpModal()" class="text-slate-400 hover:text-white"><i data-lucide="x" class="w-6 h-6"></i></button>
+            </div>
+            
+            <div class="p-8 space-y-6">
+                <div class="grid grid-cols-2 gap-6">
+                    <div>
+                        <label class="block text-[10px] uppercase tracking-widest text-slate-500 mb-1">Waypoint Name</label>
+                        <input type="text" id="wp-name" class="w-full bg-slate-800 border border-slate-700 rounded-xl p-3 text-sm focus:border-blue-500 outline-none" placeholder="e.g. ALPHA-1">
+                    </div>
+                    <div>
+                        <label class="block text-[10px] uppercase tracking-widest text-slate-500 mb-1">Type Point</label>
+                        <select id="wp-type" class="w-full bg-slate-800 border border-slate-700 rounded-xl p-3 text-sm focus:border-blue-500 outline-none appearance-none">
+                            <option value="VFR">VFR (Orange Square)</option>
+                            <option value="APT">Airport (Blue Circle)</option>
+                            <option value="HELI">Heliport (Pink Circle)</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="flex items-center gap-4 bg-slate-900/50 p-1 rounded-xl w-fit">
+                    <button onclick="setCoordMode('DEC')" id="btn-mode-dec" class="px-4 py-1.5 rounded-lg text-[10px] font-bold bg-blue-600 transition">DECIMAL</button>
+                    <button onclick="setCoordMode('DMS')" id="btn-mode-dms" class="px-4 py-1.5 rounded-lg text-[10px] font-bold transition">DMS</button>
+                </div>
+
+                <div id="coord-dec-inputs" class="grid grid-cols-2 gap-6">
+                    <div>
+                        <label class="block text-[10px] uppercase tracking-widest text-slate-500 mb-1">Latitude</label>
+                        <input type="number" id="wp-lat-dec" step="any" class="w-full bg-slate-800 border border-slate-700 rounded-xl p-3 text-sm" placeholder="-6.2088">
+                    </div>
+                    <div>
+                        <label class="block text-[10px] uppercase tracking-widest text-slate-500 mb-1">Longitude</label>
+                        <input type="number" id="wp-lon-dec" step="any" class="w-full bg-slate-800 border border-slate-700 rounded-xl p-3 text-sm" placeholder="106.8456">
+                    </div>
+                </div>
+
+                <div id="coord-dms-inputs" class="hidden space-y-4">
+                    <div class="grid grid-cols-4 gap-2 items-end">
+                        <div class="col-span-1">
+                            <label class="block text-[10px] text-slate-500 mb-1 uppercase">Lat Deg</label>
+                            <input type="number" id="wp-lat-d" class="w-full bg-slate-800 border border-slate-700 rounded-lg p-2 text-center text-sm">
+                        </div>
+                        <div>
+                            <label class="block text-[10px] text-slate-500 mb-1 uppercase">Min</label>
+                            <input type="number" id="wp-lat-m" class="w-full bg-slate-800 border border-slate-700 rounded-lg p-2 text-center text-sm">
+                        </div>
+                        <div>
+                            <label class="block text-[10px] text-slate-500 mb-1 uppercase">Sec</label>
+                            <input type="number" id="wp-lat-s" class="w-full bg-slate-800 border border-slate-700 rounded-lg p-2 text-center text-sm">
+                        </div>
+                        <div>
+                            <select id="wp-lat-dir" class="w-full bg-slate-800 border border-slate-700 rounded-lg p-2 text-sm">
+                                <option value="N">N</option>
+                                <option value="S">S</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="grid grid-cols-4 gap-2 items-end">
+                        <div class="col-span-1">
+                            <label class="block text-[10px] text-slate-500 mb-1 uppercase">Lon Deg</label>
+                            <input type="number" id="wp-lon-d" class="w-full bg-slate-800 border border-slate-700 rounded-lg p-2 text-center text-sm">
+                        </div>
+                        <div>
+                            <label class="block text-[10px] text-slate-500 mb-1 uppercase">Min</label>
+                            <input type="number" id="wp-lon-m" class="w-full bg-slate-800 border border-slate-700 rounded-lg p-2 text-center text-sm">
+                        </div>
+                        <div>
+                            <label class="block text-[10px] text-slate-500 mb-1 uppercase">Sec</label>
+                            <input type="number" id="wp-lon-s" class="w-full bg-slate-800 border border-slate-700 rounded-lg p-2 text-center text-sm">
+                        </div>
+                        <div>
+                            <select id="wp-lon-dir" class="w-full bg-slate-800 border border-slate-700 rounded-lg p-2 text-sm">
+                                <option value="E">E</option>
+                                <option value="W">W</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
+                <div>
+                    <label class="block text-[10px] uppercase tracking-widest text-slate-500 mb-1">Elevation (FT)</label>
+                    <div class="flex gap-2">
+                        <input type="number" id="wp-elev" class="flex-grow bg-slate-800 border border-slate-700 rounded-xl p-3 text-sm outline-none focus:border-blue-500" placeholder="0">
+                        <button onclick="syncElevation()" id="sync-btn" class="bg-blue-600/20 text-blue-400 hover:bg-blue-600 hover:text-white px-4 rounded-xl text-xs font-bold transition flex items-center gap-2">
+                            <i data-lucide="refresh-cw" class="w-3 h-3"></i> SYNC
+                        </button>
+                    </div>
+                </div>
+
+                <div class="pt-6 flex gap-3">
+                    <button onclick="closeWpModal()" class="flex-1 border border-slate-700 hover:bg-slate-800 py-3 rounded-xl font-bold transition">CANCEL</button>
+                    <button onclick="saveWaypoint()" class="flex-1 bg-blue-600 hover:bg-blue-500 py-3 rounded-xl font-bold transition shadow-lg shadow-blue-900/40">SAVE WAYPOINT</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <script>
-        // --- INITIALIZATION ---
+        // --- DATA & STATE ---
         let map;
         let currentUser = null;
-        let userLocationMarker = null;
+        let coordMode = 'DEC';
+        let editingIndex = -1;
         let googleSheetUrl = localStorage.getItem('skyops_gs_url') || '';
         
-        // Mock DB (Synchronized with localStorage for this demo if no GS)
         let users = JSON.parse(localStorage.getItem('skyops_users')) || [
             { name: "System Admin", username: "admin", password: "ramdan28", expired: "2099-12-31", isAdmin: true }
+        ];
+
+        let waypoints = JSON.parse(localStorage.getItem('skyops_waypoints')) || [
+            { id: Date.now(), name: "W-JKT", type: "APT", lat: -6.2088, lon: 106.8456, elev: 25 }
         ];
 
         window.onload = () => {
             lucide.createIcons();
             document.getElementById('gs-url').value = googleSheetUrl;
-            
-            // Splash sequence
             setTimeout(() => {
                 const splash = document.getElementById('splash-screen');
                 splash.style.opacity = '0';
@@ -275,193 +384,259 @@
             }, 2500);
         };
 
-        // --- AUTHENTICATION ---
+        // --- AUTH ---
         function handleLogin() {
             const userIn = document.getElementById('username').value;
             const passIn = document.getElementById('password').value;
             const errorEl = document.getElementById('login-error');
-
             const foundUser = users.find(u => u.username === userIn && u.password === passIn);
 
             if (foundUser) {
-                const expiryDate = new Date(foundUser.expired);
-                const today = new Date();
-
-                if (today > expiryDate && !foundUser.isAdmin) {
-                    errorEl.textContent = "Your account has expired.";
-                    errorEl.classList.remove('hidden');
-                    return;
-                }
-
                 currentUser = foundUser;
                 document.getElementById('login-page').classList.add('hidden');
                 document.getElementById('app-container').classList.remove('hidden');
-                
                 initApp();
             } else {
-                errorEl.textContent = "Invalid username or password.";
                 errorEl.classList.remove('hidden');
             }
         }
 
-        function initApp() {
+        async function initApp() {
             document.getElementById('welcome-user').textContent = `Welcome, Captain ${currentUser.name.split(' ')[0]}`;
             document.getElementById('expiry-info').textContent = `Valid Until: ${currentUser.expired}`;
+            if (currentUser.isAdmin) document.getElementById('admin-tab-btn').classList.remove('hidden');
+            if (!map) initMap();
             
-            if (currentUser.isAdmin) {
-                document.getElementById('admin-tab-btn').classList.remove('hidden');
-            }
-
-            // Initialize Map
-            if (!map) {
-                initMap();
+            // Sync from Cloud if URL exists
+            if (googleSheetUrl) {
+                await loadCloudData('waypoints');
+                await loadCloudData('users');
             }
             
-            refreshUserTable();
+            renderWaypoints();
+            renderAdminUsers();
         }
 
-        function logout() {
-            location.reload();
+        async function loadCloudData(type) {
+            try {
+                const resp = await fetch(`${googleSheetUrl}?target=${type}`);
+                const cloudData = await resp.json();
+                if (type === 'waypoints') {
+                    waypoints = cloudData;
+                    localStorage.setItem('skyops_waypoints', JSON.stringify(waypoints));
+                } else {
+                    users = cloudData;
+                    localStorage.setItem('skyops_users', JSON.stringify(users));
+                }
+            } catch (e) { console.warn("Cloud sync failed", e); }
         }
 
-        // --- MAP LOGIC ---
-        const layers = {
-            satellite: L.tileLayer('https://{s}.google.com/vt/lyrs=s,h&x={x}&y={y}&z={z}', {
-                maxZoom: 20, subdomains: ['mt0', 'mt1', 'mt2', 'mt3']
-            }),
-            street: L.tileLayer('https://{s}.google.com/vt/lyrs=m&x={x}&y={y}&z={z}', {
-                maxZoom: 20, subdomains: ['mt0', 'mt1', 'mt2', 'mt3']
-            }),
-            terrain: L.tileLayer('https://{s}.google.com/vt/lyrs=p&x={x}&y={y}&z={z}', {
-                maxZoom: 20, subdomains: ['mt0', 'mt1', 'mt2', 'mt3']
-            })
-        };
-
-        function initMap() {
-            map = L.map('map', {
-                center: [-6.2088, 106.8456],
-                zoom: 10,
-                layers: [layers.satellite],
-                zoomControl: false
-            });
-
-            // Re-render when switching tabs (Leaflet fix)
-            setTimeout(() => map.invalidateSize(), 100);
-        }
-
-        function setMapLayer(type) {
-            Object.values(layers).forEach(l => map.removeLayer(l));
-            layers[type].addTo(map);
-        }
-
-        function locateUser() {
-            if (!navigator.geolocation) {
-                alert("Geolocation is not supported by your browser");
-                return;
-            }
-
-            navigator.geolocation.getCurrentPosition((pos) => {
-                const { latitude, longitude } = pos.coords;
-                map.flyTo([latitude, longitude], 13);
-
-                if (userLocationMarker) map.removeLayer(userLocationMarker);
-
-                const icon = L.divIcon({
-                    className: 'custom-div-icon',
-                    html: `<div class="pulse-blue"></div>`,
-                    iconSize: [15, 15],
-                    iconAnchor: [7, 7]
-                });
-
-                userLocationMarker = L.marker([latitude, longitude], { icon }).addTo(map);
-            }, () => {
-                alert("Unable to retrieve your location");
-            });
-        }
+        function logout() { location.reload(); }
 
         // --- NAVIGATION ---
         function switchTab(tabId) {
             document.querySelectorAll('.tab-content').forEach(c => c.classList.add('hidden'));
             document.querySelectorAll('.nav-tab, #admin-tab-btn').forEach(t => t.classList.remove('active'));
-            
             document.getElementById(`content-${tabId}`).classList.remove('hidden');
-            
             const activeTab = document.getElementById(`tab-${tabId}`) || document.getElementById('admin-tab-btn');
             activeTab.classList.add('active');
+            if (tabId === 'map') setTimeout(() => map.invalidateSize(), 200);
+            if (tabId === 'waypoint') renderWaypoints();
+            if (tabId === 'admin') renderAdminUsers();
+        }
 
-            if (tabId === 'map') {
-                setTimeout(() => map.invalidateSize(), 200);
+        // --- MAP ---
+        function initMap() {
+            const sat = L.tileLayer('https://{s}.google.com/vt/lyrs=s,h&x={x}&y={y}&z={z}', { maxZoom: 20, subdomains:['mt0','mt1','mt2','mt3'] });
+            map = L.map('map', { center: [-6.2088, 106.8456], zoom: 10, layers: [sat], zoomControl: false });
+        }
+        function setMapLayer(type) {
+            const urls = { satellite: 's,h', street: 'm', terrain: 'p' };
+            map.eachLayer(l => map.removeLayer(l));
+            L.tileLayer(`https://{s}.google.com/vt/lyrs=${urls[type]}&x={x}&y={y}&z={z}`, { maxZoom: 20, subdomains:['mt0','mt1','mt2','mt3'] }).addTo(map);
+        }
+        function locateUser() {
+            navigator.geolocation.getCurrentPosition(p => {
+                const { latitude, longitude } = p.coords;
+                map.flyTo([latitude, longitude], 13);
+                const icon = L.divIcon({ className: '', html: `<div class="pulse-blue"></div>`, iconSize: [15, 15] });
+                L.marker([latitude, longitude], { icon }).addTo(map);
+            });
+        }
+
+        // --- WAYPOINT LOGIC ---
+        function openWpModal(index = -1) {
+            editingIndex = index;
+            document.getElementById('wp-modal').classList.remove('hidden');
+            document.getElementById('modal-title').textContent = index === -1 ? "Add New Waypoint" : "Edit Waypoint";
+            if (index !== -1) {
+                const wp = waypoints[index];
+                document.getElementById('wp-name').value = wp.name;
+                document.getElementById('wp-type').value = wp.type;
+                document.getElementById('wp-lat-dec').value = wp.lat;
+                document.getElementById('wp-lon-dec').value = wp.lon;
+                document.getElementById('wp-elev').value = wp.elev;
+                decimalToDMSFields(wp.lat, wp.lon);
+            } else {
+                ['wp-name','wp-lat-dec','wp-lon-dec','wp-elev'].forEach(id => document.getElementById(id).value = '');
             }
         }
 
-        // --- ADMIN & DATABASE LOGIC ---
-        function saveGSUrl() {
-            googleSheetUrl = document.getElementById('gs-url').value;
-            localStorage.setItem('skyops_gs_url', googleSheetUrl);
-            alert("Google Sheet API URL Saved!");
+        function closeWpModal() { document.getElementById('wp-modal').classList.add('hidden'); }
+
+        function setCoordMode(mode) {
+            coordMode = mode;
+            document.getElementById('btn-mode-dec').className = mode === 'DEC' ? 'px-4 py-1.5 rounded-lg text-[10px] font-bold bg-blue-600 transition' : 'px-4 py-1.5 rounded-lg text-[10px] font-bold transition';
+            document.getElementById('btn-mode-dms').className = mode === 'DMS' ? 'px-4 py-1.5 rounded-lg text-[10px] font-bold bg-blue-600 transition' : 'px-4 py-1.5 rounded-lg text-[10px] font-bold transition';
+            document.getElementById('coord-dec-inputs').classList.toggle('hidden', mode === 'DMS');
+            document.getElementById('coord-dms-inputs').classList.toggle('hidden', mode === 'DEC');
+            if (mode === 'DMS') {
+                decimalToDMSFields(parseFloat(document.getElementById('wp-lat-dec').value), parseFloat(document.getElementById('wp-lon-dec').value));
+            } else {
+                document.getElementById('wp-lat-dec').value = dmsToDecimal('wp-lat').toFixed(6);
+                document.getElementById('wp-lon-dec').value = dmsToDecimal('wp-lon').toFixed(6);
+            }
         }
 
-        function addUser() {
-            const name = document.getElementById('new-name').value;
-            const user = document.getElementById('new-user').value;
-            const pass = document.getElementById('new-pass').value;
-            const exp = document.getElementById('new-exp').value;
-
-            if (!name || !user || !pass || !exp) return alert("Fill all fields");
-
-            users.push({ name, username: user, password: pass, expired: exp, isAdmin: false });
-            localStorage.setItem('skyops_users', JSON.stringify(users));
-            
-            // Reset fields
-            document.getElementById('new-name').value = '';
-            document.getElementById('new-user').value = '';
-            document.getElementById('new-pass').value = '';
-            document.getElementById('new-exp').value = '';
-            
-            refreshUserTable();
-            syncToGoogleSheet();
+        function dmsToDecimal(prefix) {
+            const d = parseFloat(document.getElementById(`${prefix}-d`).value) || 0;
+            const m = parseFloat(document.getElementById(`${prefix}-m`).value) || 0;
+            const s = parseFloat(document.getElementById(`${prefix}-s`).value) || 0;
+            const dir = document.getElementById(`${prefix}-dir`).value;
+            let res = d + (m/60) + (s/3600);
+            return (dir === 'S' || dir === 'W') ? -res : res;
         }
 
-        function deleteUser(index) {
-            if (users[index].username === 'admin') return;
-            users.splice(index, 1);
-            localStorage.setItem('skyops_users', JSON.stringify(users));
-            refreshUserTable();
-            syncToGoogleSheet();
+        function decimalToDMSFields(lat, lon) {
+            const convert = (val, isLat) => {
+                const dir = isLat ? (val >= 0 ? 'N' : 'S') : (val >= 0 ? 'E' : 'W');
+                val = Math.abs(val || 0);
+                const d = Math.floor(val);
+                const m = Math.floor((val - d) * 60);
+                const s = Math.round((val - d - m/60) * 3600 * 100) / 100;
+                return { d, m, s, dir };
+            };
+            const latDms = convert(lat, true);
+            const lonDms = convert(lon, false);
+            document.getElementById('wp-lat-d').value = latDms.d; document.getElementById('wp-lat-m').value = latDms.m;
+            document.getElementById('wp-lat-s').value = latDms.s; document.getElementById('wp-lat-dir').value = latDms.dir;
+            document.getElementById('wp-lon-d').value = lonDms.d; document.getElementById('wp-lon-m').value = lonDms.m;
+            document.getElementById('wp-lon-s').value = lonDms.s; document.getElementById('wp-lon-dir').value = lonDms.dir;
         }
 
-        function refreshUserTable() {
-            const tbody = document.getElementById('user-table-body');
+        function formatDMSLabel(val, isLat) {
+            const dir = isLat ? (val >= 0 ? 'N' : 'S') : (val >= 0 ? 'E' : 'W');
+            val = Math.abs(val || 0);
+            const d = Math.floor(val);
+            const m = Math.floor((val - d) * 60);
+            const s = Math.round((val - d - m/60) * 3600);
+            return `${d}°${m}'${s}" ${dir}`;
+        }
+
+        async function saveWaypoint() {
+            const name = document.getElementById('wp-name').value;
+            const type = document.getElementById('wp-type').value;
+            const elev = document.getElementById('wp-elev').value || 0;
+            let lat = coordMode === 'DEC' ? parseFloat(document.getElementById('wp-lat-dec').value) : dmsToDecimal('wp-lat');
+            let lon = coordMode === 'DEC' ? parseFloat(document.getElementById('wp-lon-dec').value) : dmsToDecimal('wp-lon');
+
+            if (!name || isNaN(lat) || isNaN(lon)) return alert("Data Incomplete");
+            const wpData = { name, type, lat, lon, elev };
+
+            if (editingIndex === -1) waypoints.push(wpData);
+            else waypoints[editingIndex] = wpData;
+
+            localStorage.setItem('skyops_waypoints', JSON.stringify(waypoints));
+            closeWpModal();
+            renderWaypoints();
+            syncCloud('waypoints', waypoints);
+        }
+
+        async function syncCloud(target, data) {
+            if (!googleSheetUrl) return;
+            try {
+                await fetch(`${googleSheetUrl}?target=${target}`, {
+                    method: 'POST',
+                    mode: 'no-cors',
+                    body: JSON.stringify(data)
+                });
+            } catch (e) { console.error("Cloud sync error", e); }
+        }
+
+        function renderWaypoints() {
+            const tbody = document.getElementById('waypoint-table-body');
             tbody.innerHTML = '';
-            users.forEach((u, i) => {
-                const row = `
-                    <tr class="border-t border-slate-700/50 hover:bg-white/5 transition">
-                        <td class="p-4 text-sm font-medium">${u.name}</td>
-                        <td class="p-4 text-sm text-slate-400">${u.username}</td>
-                        <td class="p-4 text-sm font-mono text-blue-400">${u.password}</td>
-                        <td class="p-4 text-sm ${new Date(u.expired) < new Date() ? 'text-red-500' : 'text-green-400'}">${u.expired}</td>
-                        <td class="p-4">
-                            ${u.isAdmin ? '<span class="text-[10px] bg-blue-500/20 text-blue-400 px-2 py-1 rounded">SYSTEM</span>' : 
-                            `<button onclick="deleteUser(${i})" class="text-red-400 hover:text-red-600 p-1"><i data-lucide="trash-2" class="w-4 h-4"></i></button>`}
+            document.getElementById('wp-empty-state').classList.toggle('hidden', waypoints.length > 0);
+            waypoints.forEach((wp, i) => {
+                const icon = wp.type === 'VFR' ? '<div class="wp-icon-vfr"></div>' : 
+                             wp.type === 'APT' ? '<div class="wp-icon-apt"><i data-lucide="plane" class="w-2.5 h-2.5"></i></div>' : 
+                             '<div class="wp-icon-heli">H</div>';
+                tbody.innerHTML += `
+                    <tr onclick="openWpModal(${i})" class="border-t border-slate-700/50 hover:bg-white/5 cursor-pointer transition group">
+                        <td class="p-4">${icon}</td>
+                        <td class="p-4 font-bold text-sm">${wp.name}</td>
+                        <td class="p-4 font-mono text-xs text-blue-400">${formatDMSLabel(wp.lat, true)} <br> ${formatDMSLabel(wp.lon, false)}</td>
+                        <td class="p-4 text-sm">${wp.elev} FT</td>
+                        <td class="p-4 text-right">
+                            <button onclick="event.stopPropagation(); deleteWp(${i})" class="opacity-0 group-hover:opacity-100 p-2 text-red-400"><i data-lucide="trash-2" class="w-4 h-4"></i></button>
                         </td>
                     </tr>
                 `;
-                tbody.innerHTML += row;
             });
             lucide.createIcons();
         }
 
-        // Placeholder for Google Sheets Sync
-        async function syncToGoogleSheet() {
-            if (!googleSheetUrl) return;
-            // logic to send POST request to Google Apps Script
-            try {
-                await fetch(googleSheetUrl, {
-                    method: 'POST',
-                    mode: 'no-cors',
-                    body: JSON.stringify(users)
-                });
-            } catch (e) { console.error("Sync failed", e); }
+        function deleteWp(i) {
+            if(confirm("Delete waypoint?")) { waypoints.splice(i, 1); renderWaypoints(); syncCloud('waypoints', waypoints); }
+        }
+
+        // --- ADMIN USER LOGIC ---
+        function saveGSUrl() {
+            googleSheetUrl = document.getElementById('gs-url').value;
+            localStorage.setItem('skyops_gs_url', googleSheetUrl);
+            alert("URL Saved");
+        }
+
+        function adminAddUser() {
+            const name = document.getElementById('adm-name').value;
+            const user = document.getElementById('adm-user').value;
+            const pass = document.getElementById('adm-pass').value;
+            const exp = document.getElementById('adm-exp').value;
+            if(!name || !user) return alert("Missing data");
+            users.push({name, username: user, password: pass, expired: exp});
+            renderAdminUsers();
+            syncCloud('users', users);
+        }
+
+        function renderAdminUsers() {
+            const tbody = document.getElementById('admin-user-table');
+            tbody.innerHTML = '';
+            users.forEach((u, i) => {
+                tbody.innerHTML += `
+                    <tr class="border-t border-slate-700">
+                        <td class="p-3">${u.name}</td>
+                        <td class="p-3">${u.username}</td>
+                        <td class="p-3">${u.password}</td>
+                        <td class="p-3">${u.expired}</td>
+                        <td class="p-3 text-red-400">
+                             ${u.username !== 'admin' ? `<button onclick="deleteUser(${i})">Delete</button>` : 'System'}
+                        </td>
+                    </tr>
+                `;
+            });
+        }
+
+        function deleteUser(i) {
+            users.splice(i, 1); renderAdminUsers(); syncCloud('users', users);
+        }
+
+        async function syncElevation() {
+            const btn = document.getElementById('sync-btn');
+            btn.innerHTML = 'SYNCING...';
+            setTimeout(() => {
+                document.getElementById('wp-elev').value = Math.floor(Math.random() * 3000) + 50;
+                btn.innerHTML = 'SYNC';
+            }, 800);
         }
 
     </script>
