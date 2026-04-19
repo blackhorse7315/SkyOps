@@ -81,7 +81,8 @@
 
     <!-- LOGIN PAGE -->
     <div id="login-page" class="hidden fixed inset-0 z-[999] bg-[#0f172a] flex items-center justify-center p-4">
-        <div class="glass p-8 rounded-2xl w-full max-md shadow-2xl border border-white/10">
+        <!-- Ukuran card login diperbaiki menjadi max-w-md agar tidak melebar -->
+        <div class="glass p-8 rounded-2xl w-full max-w-md shadow-2xl border border-white/10">
             <div class="text-center mb-8">
                 <img src="https://lh3.googleusercontent.com/d/1HzKe-3FS_hP-MjbOHc-mkyierhu5kVp-" alt="Logo" class="w-20 h-20 mx-auto mb-4 object-contain">
                 <h2 class="text-2xl font-bold">Log In</h2>
@@ -167,14 +168,14 @@
             </div>
 
             <div id="content-route" class="tab-content hidden p-8 overflow-y-auto h-full">
-                <h2 class="text-2xl font-bold mb-4">Flight Planning</h2>
+                <h2 class="text-2xl font-bold mb-4 text-white">Flight Planning</h2>
                 <p class="text-slate-400">Initialize route tracking...</p>
             </div>
 
             <div id="content-waypoint" class="tab-content hidden p-8 overflow-y-auto h-full">
                 <div class="flex justify-between items-center mb-6">
                     <div>
-                        <h2 class="text-2xl font-bold">Waypoint Database</h2>
+                        <h2 class="text-2xl font-bold text-white">Waypoint Database</h2>
                     </div>
                     <button onclick="openWpModal()" class="bg-blue-600 hover:bg-blue-500 px-6 py-2.5 rounded-xl text-sm font-bold flex items-center gap-2 transition">
                         <i data-lucide="plus-circle" class="w-4 h-4"></i> ADD NEW WAYPOINT
@@ -182,7 +183,7 @@
                 </div>
                 <div class="glass rounded-2xl overflow-hidden border border-white/5">
                     <table class="w-full text-left">
-                        <thead class="bg-slate-800/80">
+                        <thead class="bg-slate-800/80 text-white">
                             <tr>
                                 <th class="p-4 text-xs font-bold uppercase text-slate-400">Type</th>
                                 <th class="p-4 text-xs font-bold uppercase text-slate-400">Name</th>
@@ -191,7 +192,7 @@
                                 <th class="p-4 text-xs font-bold uppercase text-slate-400 text-right">Action</th>
                             </tr>
                         </thead>
-                        <tbody id="waypoint-table-body"></tbody>
+                        <tbody id="waypoint-table-body" class="text-slate-300"></tbody>
                     </table>
                     <div id="wp-empty-state" class="p-12 text-center text-slate-500 hidden">
                         <p>No waypoints found.</p>
@@ -200,7 +201,7 @@
             </div>
 
             <div id="content-aircraft" class="tab-content hidden p-8 overflow-y-auto h-full">
-                <h2 class="text-2xl font-bold mb-4">Aircraft Profile</h2>
+                <h2 class="text-2xl font-bold mb-4 text-white">Aircraft Profile</h2>
             </div>
 
             <!-- ADMIN TAB -->
@@ -209,29 +210,29 @@
                 <div class="glass p-6 rounded-2xl mb-6">
                     <label class="block text-xs uppercase tracking-widest text-slate-500 mb-2">Google Sheet API URL</label>
                     <div class="flex gap-2">
-                        <input type="text" id="gs-url" class="flex-grow bg-slate-900 border border-slate-700 rounded-lg px-4 py-2 text-sm" placeholder="Paste URL here">
-                        <button onclick="saveGSUrl()" class="bg-green-600 px-6 py-2 rounded-lg text-sm font-bold">SAVE</button>
+                        <input type="text" id="gs-url" class="flex-grow bg-slate-900 border border-slate-700 rounded-lg px-4 py-2 text-sm text-white" placeholder="Paste URL here">
+                        <button onclick="saveGSUrl()" class="bg-green-600 px-6 py-2 rounded-lg text-sm font-bold text-white">SAVE</button>
                     </div>
                 </div>
                 
                 <div class="glass p-4 rounded-xl">
-                    <h4 class="text-sm font-bold mb-4">Add/Edit User</h4>
+                    <h4 class="text-sm font-bold mb-4 text-white">Add/Edit User</h4>
                     <div class="grid grid-cols-5 gap-2 mb-4">
-                        <input id="adm-name" class="bg-slate-800 p-2 text-xs rounded border border-slate-700" placeholder="Full Name">
-                        <input id="adm-user" class="bg-slate-800 p-2 text-xs rounded border border-slate-700" placeholder="Username">
-                        <input id="adm-pass" class="bg-slate-800 p-2 text-xs rounded border border-slate-700" placeholder="Password">
-                        <input id="adm-exp" type="date" class="bg-slate-800 p-2 text-xs rounded border border-slate-700">
-                        <select id="adm-role" class="bg-slate-800 p-2 text-xs rounded border border-slate-700">
+                        <input id="adm-name" class="bg-slate-800 p-2 text-xs rounded border border-slate-700 text-white" placeholder="Full Name">
+                        <input id="adm-user" class="bg-slate-800 p-2 text-xs rounded border border-slate-700 text-white" placeholder="Username">
+                        <input id="adm-pass" class="bg-slate-800 p-2 text-xs rounded border border-slate-700 text-white" placeholder="Password">
+                        <input id="adm-exp" type="date" class="bg-slate-800 p-2 text-xs rounded border border-slate-700 text-white">
+                        <select id="adm-role" class="bg-slate-800 p-2 text-xs rounded border border-slate-700 text-white">
                             <option value="user">USER</option>
                             <option value="system">SYSTEM</option>
                         </select>
                     </div>
-                    <button onclick="adminAddUser()" class="bg-blue-600 w-full p-2 rounded font-bold text-xs">UPDATE USER DATABASE</button>
+                    <button onclick="adminAddUser()" class="bg-blue-600 w-full p-2 rounded font-bold text-xs text-white">UPDATE USER DATABASE</button>
                 </div>
 
                 <div class="mt-6 glass rounded-xl overflow-hidden">
                     <table class="w-full text-left text-xs">
-                        <thead class="bg-slate-800">
+                        <thead class="bg-slate-800 text-white">
                             <tr>
                                 <th class="p-3">Name</th>
                                 <th class="p-3">User</th>
@@ -241,7 +242,7 @@
                                 <th class="p-3">Action</th>
                             </tr>
                         </thead>
-                        <tbody id="admin-user-table"></tbody>
+                        <tbody id="admin-user-table" class="text-slate-300"></tbody>
                     </table>
                 </div>
             </div>
@@ -252,18 +253,18 @@
     <div id="wp-modal" class="hidden fixed inset-0 z-[2000] modal-overlay flex items-center justify-center p-4">
         <div class="glass w-full max-w-2xl rounded-3xl overflow-hidden border border-white/10 shadow-2xl">
             <div class="p-6 border-b border-white/5 flex justify-between items-center">
-                <h3 id="modal-title" class="text-xl font-bold">Add New Waypoint</h3>
+                <h3 id="modal-title" class="text-xl font-bold text-white">Add New Waypoint</h3>
                 <button onclick="closeWpModal()" class="text-slate-400 hover:text-white"><i data-lucide="x" class="w-6 h-6"></i></button>
             </div>
             <div class="p-8 space-y-6">
                 <div class="grid grid-cols-2 gap-6">
                     <div>
                         <label class="block text-[10px] uppercase tracking-widest text-slate-500 mb-1">Waypoint Name</label>
-                        <input type="text" id="wp-name" class="w-full bg-slate-800 border border-slate-700 rounded-xl p-3 text-sm outline-none focus:border-blue-500">
+                        <input type="text" id="wp-name" class="w-full bg-slate-800 border border-slate-700 rounded-xl p-3 text-sm text-white outline-none focus:border-blue-500">
                     </div>
                     <div>
                         <label class="block text-[10px] uppercase tracking-widest text-slate-500 mb-1">Type Point</label>
-                        <select id="wp-type" class="w-full bg-slate-800 border border-slate-700 rounded-xl p-3 text-sm outline-none">
+                        <select id="wp-type" class="w-full bg-slate-800 border border-slate-700 rounded-xl p-3 text-sm text-white outline-none">
                             <option value="VFR">VFR (Orange Square)</option>
                             <option value="APT">Airport (Blue Circle)</option>
                             <option value="HELI">Heliport (Pink Circle)</option>
@@ -271,37 +272,37 @@
                     </div>
                 </div>
                 <div class="flex items-center gap-4 bg-slate-900/50 p-1 rounded-xl w-fit">
-                    <button onclick="setCoordMode('DEC')" id="btn-mode-dec" class="px-4 py-1.5 rounded-lg text-[10px] font-bold bg-blue-600">DECIMAL</button>
-                    <button onclick="setCoordMode('DMS')" id="btn-mode-dms" class="px-4 py-1.5 rounded-lg text-[10px] font-bold">DMS</button>
+                    <button onclick="setCoordMode('DEC')" id="btn-mode-dec" class="px-4 py-1.5 rounded-lg text-[10px] font-bold bg-blue-600 text-white transition">DECIMAL</button>
+                    <button onclick="setCoordMode('DMS')" id="btn-mode-dms" class="px-4 py-1.5 rounded-lg text-[10px] font-bold text-white transition">DMS</button>
                 </div>
                 <div id="coord-dec-inputs" class="grid grid-cols-2 gap-6">
-                    <input type="number" id="wp-lat-dec" step="any" class="bg-slate-800 border border-slate-700 rounded-xl p-3 text-sm" placeholder="Lat">
-                    <input type="number" id="wp-lon-dec" step="any" class="bg-slate-800 border border-slate-700 rounded-xl p-3 text-sm" placeholder="Lon">
+                    <input type="number" id="wp-lat-dec" step="any" class="bg-slate-800 border border-slate-700 rounded-xl p-3 text-sm text-white" placeholder="Lat">
+                    <input type="number" id="wp-lon-dec" step="any" class="bg-slate-800 border border-slate-700 rounded-xl p-3 text-sm text-white" placeholder="Lon">
                 </div>
                 <div id="coord-dms-inputs" class="hidden space-y-4">
                     <div class="grid grid-cols-4 gap-2">
-                        <input type="number" id="wp-lat-d" class="bg-slate-800 border border-slate-700 p-2 text-center text-sm" placeholder="D">
-                        <input type="number" id="wp-lat-m" class="bg-slate-800 border border-slate-700 p-2 text-center text-sm" placeholder="M">
-                        <input type="number" id="wp-lat-s" class="bg-slate-800 border border-slate-700 p-2 text-center text-sm" placeholder="S">
-                        <select id="wp-lat-dir" class="bg-slate-800 border border-slate-700 p-2 text-sm"><option value="N">N</option><option value="S">S</option></select>
+                        <input type="number" id="wp-lat-d" class="bg-slate-800 border border-slate-700 p-2 text-center text-sm text-white" placeholder="D">
+                        <input type="number" id="wp-lat-m" class="bg-slate-800 border border-slate-700 p-2 text-center text-sm text-white" placeholder="M">
+                        <input type="number" id="wp-lat-s" class="bg-slate-800 border border-slate-700 p-2 text-center text-sm text-white" placeholder="S">
+                        <select id="wp-lat-dir" class="bg-slate-800 border border-slate-700 p-2 text-sm text-white"><option value="N">N</option><option value="S">S</option></select>
                     </div>
                     <div class="grid grid-cols-4 gap-2">
-                        <input type="number" id="wp-lon-d" class="bg-slate-800 border border-slate-700 p-2 text-center text-sm" placeholder="D">
-                        <input type="number" id="wp-lon-m" class="bg-slate-800 border border-slate-700 p-2 text-center text-sm" placeholder="M">
-                        <input type="number" id="wp-lon-s" class="bg-slate-800 border border-slate-700 p-2 text-center text-sm" placeholder="S">
-                        <select id="wp-lon-dir" class="bg-slate-800 border border-slate-700 p-2 text-sm"><option value="E">E</option><option value="W">W</option></select>
+                        <input type="number" id="wp-lon-d" class="bg-slate-800 border border-slate-700 p-2 text-center text-sm text-white" placeholder="D">
+                        <input type="number" id="wp-lon-m" class="bg-slate-800 border border-slate-700 p-2 text-center text-sm text-white" placeholder="M">
+                        <input type="number" id="wp-lon-s" class="bg-slate-800 border border-slate-700 p-2 text-center text-sm text-white" placeholder="S">
+                        <select id="wp-lon-dir" class="bg-slate-800 border border-slate-700 p-2 text-sm text-white"><option value="E">E</option><option value="W">W</option></select>
                     </div>
                 </div>
                 <div>
                     <label class="block text-[10px] uppercase tracking-widest text-slate-500 mb-1">Elevation (FT)</label>
                     <div class="flex gap-2">
-                        <input type="number" id="wp-elev" class="flex-grow bg-slate-800 border border-slate-700 rounded-xl p-3 text-sm">
-                        <button onclick="syncElevation()" id="sync-btn" class="bg-blue-600/20 text-blue-400 px-4 rounded-xl text-xs font-bold">SYNC</button>
+                        <input type="number" id="wp-elev" class="flex-grow bg-slate-800 border border-slate-700 rounded-xl p-3 text-sm text-white">
+                        <button onclick="syncElevation()" id="sync-btn" class="bg-blue-600/20 text-blue-400 px-4 rounded-xl text-xs font-bold transition">SYNC</button>
                     </div>
                 </div>
                 <div class="pt-6 flex gap-3">
-                    <button onclick="closeWpModal()" class="flex-1 border border-slate-700 py-3 rounded-xl font-bold">CANCEL</button>
-                    <button onclick="saveWaypoint()" class="flex-1 bg-blue-600 py-3 rounded-xl font-bold">SAVE WAYPOINT</button>
+                    <button onclick="closeWpModal()" class="flex-1 border border-slate-700 py-3 rounded-xl font-bold text-white transition hover:bg-white/5">CANCEL</button>
+                    <button onclick="saveWaypoint()" class="flex-1 bg-blue-600 py-3 rounded-xl font-bold text-white transition hover:bg-blue-500">SAVE WAYPOINT</button>
                 </div>
             </div>
         </div>
@@ -314,7 +315,7 @@
         let editingIndex = -1;
         let googleSheetUrl = localStorage.getItem('skyops_gs_url') || '';
         
-        // Data Default
+        // Data Default Admin tetap ada untuk jaga-jaga
         const DEFAULT_ADMIN = { name: "System Admin", username: "admin", password: "ramdan28", expired: "2099-12-31", role: "system" };
 
         let users = JSON.parse(localStorage.getItem('skyops_users')) || [ DEFAULT_ADMIN ];
@@ -324,9 +325,11 @@
             lucide.createIcons();
             document.getElementById('gs-url').value = googleSheetUrl;
             setTimeout(() => {
-                document.getElementById('splash-screen').style.opacity = '0';
+                const splash = document.getElementById('splash-screen');
+                splash.style.opacity = '0';
+                splash.style.transition = 'opacity 1s ease';
                 setTimeout(() => {
-                    document.getElementById('splash-screen').classList.add('hidden');
+                    splash.classList.add('hidden');
                     document.getElementById('login-page').classList.remove('hidden');
                 }, 1000);
             }, 2500);
@@ -339,7 +342,7 @@
             
             let foundUser = users.find(u => u.username === userIn && u.password === passIn);
 
-            // Failsafe: Hardcoded admin access if account is not found or role is missing
+            // Failsafe: Jika login admin, paksa role ke system agar tab admin muncul
             if (userIn === "admin" && passIn === "ramdan28") {
                 foundUser = DEFAULT_ADMIN;
             }
@@ -366,7 +369,7 @@
             document.getElementById('welcome-user').textContent = `Welcome, Captain ${currentUser.name.split(' ')[0]}`;
             document.getElementById('expiry-info').textContent = `Valid Until: ${currentUser.expired}`;
             
-            // Perbaikan Logika Tab Admin: Cek role atau username admin
+            // Logika Tab Admin: Tampil jika role system atau username admin
             const adminTabBtn = document.getElementById('admin-tab-btn');
             if (currentUser.role === 'system' || currentUser.username === 'admin') {
                 adminTabBtn.classList.remove('hidden');
@@ -376,14 +379,9 @@
 
             if (!map) initMap();
             
-            // Sync dari cloud jika ada URL
             if (googleSheetUrl) {
                 await loadCloudData('waypoints');
                 await loadCloudData('users');
-                // Re-check role after cloud sync to ensure tab visibility
-                if (currentUser.role === 'system' || currentUser.username === 'admin') {
-                    adminTabBtn.classList.remove('hidden');
-                }
             }
             
             renderWaypoints();
@@ -400,7 +398,7 @@
                     localStorage.setItem('skyops_waypoints', JSON.stringify(waypoints));
                 } else {
                     users = cloudData;
-                    // Pastikan admin selalu ada di list lokal
+                    // Pastikan akun admin utama tidak hilang dari list lokal
                     if (!users.some(u => u.username === 'admin')) {
                         users.unshift(DEFAULT_ADMIN);
                     }
@@ -574,10 +572,10 @@
             users.forEach((u, i) => {
                 tbody.innerHTML += `
                     <tr class="border-t border-slate-700">
-                        <td class="p-3">${u.name}</td>
-                        <td class="p-3">${u.username}</td>
-                        <td class="p-3">${u.password}</td>
-                        <td class="p-3">${u.expired}</td>
+                        <td class="p-3 text-white">${u.name}</td>
+                        <td class="p-3 text-slate-400">${u.username}</td>
+                        <td class="p-3 text-slate-400">${u.password}</td>
+                        <td class="p-3 text-slate-400">${u.expired}</td>
                         <td class="p-3"><span class="px-2 py-0.5 rounded text-[10px] ${u.role === 'system' ? 'bg-orange-500/20 text-orange-400' : 'bg-slate-500/20 text-slate-400'} uppercase">${u.role || 'user'}</span></td>
                         <td class="p-3 text-red-400">
                              ${u.username !== 'admin' ? `<button onclick="deleteUser(${i})"><i data-lucide="trash-2" class="w-3 h-3"></i></button>` : '-'}
